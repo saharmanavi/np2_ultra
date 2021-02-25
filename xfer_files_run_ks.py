@@ -242,8 +242,8 @@ class xfer_files_run_ks():
                 else:
                     print("{} {} has already been processed. Delete rez.mat to reprocess.".format(d.split("\\")[6], d.split('\\')[-1]))
 
-            with open(self.bad_dats_txt, 'w') as f:
-                f.append(bad_dats)
+            with open(self.bad_dats_txt, 'a') as f:
+                f.write(bad_dats)
 
 
 if __name__ == "__main__":
