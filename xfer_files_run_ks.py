@@ -237,7 +237,7 @@ class xfer_files_run_ks():
                         end = time.time()
                         print("done with kilosort. that took {}s".format(end-start))
                     except:
-                        bad_data.append(d)
+                        bad_dats.append(d)
                         pass
                 else:
                     print("{} {} has already been processed. Delete rez.mat to reprocess.".format(d.split("\\")[6], d.split('\\')[-1]))
