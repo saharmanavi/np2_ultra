@@ -4,6 +4,7 @@ from datetime import datetime
 import time
 import shutil
 import matlab.engine
+import json
 
 class xfer_files_run_ks():
     """runs in conda env kilosort"""
@@ -38,7 +39,7 @@ class xfer_files_run_ks():
         print("------DONE TRANSFERRING FILES--------")
         print("------STARTING KILOSORT--------")
         self.run_kilosort()
-        print("------DONE WITH KILOSORT--------")
+        print("------DONE WITH KILOSORT {}_{}--------".format(self.date, self.mouse_id))
 
     def get_date_modified(self, file_path, date_format):
         date = datetime.strftime(datetime.fromtimestamp(os.stat(file_path).st_ctime), date_format)
@@ -158,13 +159,17 @@ class xfer_files_run_ks():
             if (len(glob2.glob(os.path.join(name, "*Behavior*"))) == 0) | (len(glob2.glob(os.path.join(name, "*Eye*"))) == 0):
                 idx1 = n*2
                 idx2 = idx1+1
-                shutil.copy(beh_video_files[idx1], name)
-                shutil.copy(beh_video_files[idx2], name)
-                shutil.copy(eye_video_files[idx1], name)
-                shutil.copy(eye_video_files[idx2], name)
-                print("video files transferred to {}.".format(os.path.basename(name)))
+                try:
+                    shutil.copy(beh_video_files[idx1], name)
+                    shutil.copy(beh_video_files[idx2], name)
+                    shutil.copy(eye_video_files[idx1], name)
+                    shutil.copy(eye_video_files[idx2], name)
+                    print("video files transferred to {}.".format(os.path.basename(name)))
+                except:
+                    print("no videos for {}".format(os.path.basename(name)))
+                    pass
             else:
-                print('{} alread had video files'.format(os.path.basename(name)))
+                print('{} already had video files'.format(os.path.basename(name)))
 
         end = time.time()
         print("That took {} seconds".format(end-start))
@@ -187,10 +192,14 @@ class xfer_files_run_ks():
     def xfer_params_file(self):
         start = time.time()
         print("Transferring params file.")
-        param_file = glob2.glob(os.path.join(self.computer_names['video_sess_params'], '*{}*'.format(self.date)))[0]
-        shutil.copy(param_file, self.main_folder)
-        end = time.time()
-        print("That took {} seconds".format(end-start))
+        try:
+            param_file = glob2.glob(os.path.join(self.computer_names['video_sess_params'], '*{}*'.format(self.date)))[0]
+            shutil.copy(param_file, self.main_folder)
+            end = time.time()
+            print("That took {} seconds".format(end-start))
+        except:
+            print("No params file for {}".format(self.date))
+            pass
 
     def run_kilosort(self):
         kilosort_main_ultra = r"\\10.128.54.155\Data\kilosort_files\kilosort_main_ultra.m"
@@ -212,20 +221,32 @@ class xfer_files_run_ks():
                 shutil.copy(kilosort_main_ultra, session_file)
 
             for d in dirs:
-                if ("rez.mat" in os.listdir(d))==False:
-                    f = open(session_file, "r")
-                    lines = f.readlines()
-                    f.close()
+                try:
+                    flags_file = glob2.glob(os.path.join(d, "flags.json"))[0]
+                    print("flags_file_path = {}".format(flags_file))
+                    with open(flags_file, 'r') as f:
+                        flags = json.load(f)
+                        skip_ks = flags['skip_kilosort']
+                except Exception as e:
+                    skip_ks = False
+                    print("exception: {}".format(e))
+                print("flag_file says run kilosrt== {}".format(flags['skip_kilosort']))
+                print("script says run kilosrt== {}".format(skip_ks))
+                if (("rez.mat" in os.listdir(d))==False) and (skip_ks == False):
+                    with open(session_file, "r") as f:
+                        lines = f.readlines()
 
-                    if "rootZ" in lines[7]:
-                        del lines[7]
+                    zline = [n for n,l in enumerate(lines) if "rootZ =" in l]
+                    while len(zline) > 0:
+                        for z in zline:
+                            del lines[z]
+                        zline = [n for n,l in enumerate(lines) if "rootZ =" in l]
 
                     text_insert = "rootZ = '{}';".format(d)
-                    lines.insert(7, text_insert)
+                    lines.insert(0, text_insert)
 
-                    dest = open(session_file, "w")
-                    dest.writelines(lines)
-                    dest.close()
+                    with open(session_file, "w") as dest:
+                        dest.writelines(lines)
 
                     try:
                         start = time.time()
@@ -239,11 +260,14 @@ class xfer_files_run_ks():
                     except:
                         bad_dats.append(d)
                         pass
-                else:
+                elif ("rez.mat" in os.listdir(d))==True:
                     print("{} {} has already been processed. Delete rez.mat to reprocess.".format(d.split("\\")[6], d.split('\\')[-1]))
+                elif skip_ks == True:
+                    print("Skipping {} {} because of flags file: {}".format(d.split("\\")[6], d.split('\\')[-1], flags['other_notes']))
 
             with open(self.bad_dats_txt, 'a') as f:
-                f.write(bad_dats)
+                for line in bad_dats:
+                    f.write(line)
 
 
 if __name__ == "__main__":
