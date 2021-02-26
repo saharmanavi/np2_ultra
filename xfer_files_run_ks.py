@@ -6,7 +6,7 @@ import shutil
 import matlab.engine
 import json
 
-class xfer_files_run_ks():
+class XferFilesRunKS():
     """runs in conda env kilosort"""
     def __init__(self, date, mouse_id, computer_names_file = r"\\10.128.54.155\Data\np2_comp_names.txt"):
         self.mouse_id = mouse_id
@@ -38,8 +38,11 @@ class xfer_files_run_ks():
         self.xfer_params_file()
         print("------DONE TRANSFERRING FILES--------")
         print("------STARTING KILOSORT--------")
-        self.run_kilosort()
-        print("------DONE WITH KILOSORT {}_{}--------".format(self.date, self.mouse_id))
+        if self.mouse_if != "saline":
+            self.run_kilosort()
+            print("------DONE WITH KILOSORT {}_{}--------".format(self.date, self.mouse_id))
+        else:
+            print("------DONE TRANSFERRING FILES {}_{}--------".format(self.date, self.mouse_id))
 
     def get_date_modified(self, file_path, date_format):
         date = datetime.strftime(datetime.fromtimestamp(os.stat(file_path).st_ctime), date_format)
@@ -274,5 +277,5 @@ if __name__ == "__main__":
     parser.add_argument('date', type=str)
     parser.add_argument('mouse_id', type=str)
     args = parser.parse_args()
-    runner = xfer_files_run_ks(args.date, args.mouse_id)
+    runner = XferFilesRunKS(args.date, args.mouse_id)
     runner.run_it()
