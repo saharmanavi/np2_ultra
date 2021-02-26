@@ -1,6 +1,6 @@
 import sys
 sys.path.append(r"C:\Users\saharm\Documents\CODE\local_code\np2_processing")
-from get_ultra_waveforms import get_ultra_waveforms
+from get_ultra_waveforms import GetUltraWaveforms
 import itertools
 
 def batch_run(session_date, mouse_id, recording_nums=["1", "2", "3"], probes=["C", "E"]):
@@ -14,7 +14,7 @@ def batch_run(session_date, mouse_id, recording_nums=["1", "2", "3"], probes=["C
         except:
             recording_num = s[1]
         print("running {} {}".format(probe_label, recording_num))
-        get_ultra_waveforms(probe_label, session_date, mouse_id, recording_num).run_it()
+        GetUltraWaveforms(probe_label, session_date, mouse_id, recording_num).run_it()
 
 if __name__ == "__main__":
     import argparse

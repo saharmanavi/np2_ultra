@@ -13,7 +13,7 @@ from allensdk.brain_observatory.ecephys.align_timestamps import barcode
 from allensdk.brain_observatory.ecephys.align_timestamps import channel_states as cs
 from allensdk.brain_observatory.sync_dataset import Dataset
 
-class get_ultra_waveforms():
+class GetUltraWaveforms():
     """runs in conda env ecephys"""
     def __init__(self, probe_label, session_date, mouse_id, recording_num, root_dir=r"\\10.128.54.155\Data"):
         self.pxiDict = {'A': {'ap': '.0', 'lfp': '.1'},
@@ -259,5 +259,5 @@ if __name__ == "__main__":
     with open(args.json_params, 'r') as f:
         json_params = json.load(f)
 
-    runner = get_ultra_waveforms(**json_params)
+    runner = GetUltraWaveforms(**json_params)
     runner.run_it()
