@@ -223,15 +223,13 @@ class xfer_files_run_ks():
             for d in dirs:
                 try:
                     flags_file = glob2.glob(os.path.join(d, "flags.json"))[0]
-                    print("flags_file_path = {}".format(flags_file))
                     with open(flags_file, 'r') as f:
                         flags = json.load(f)
                         skip_ks = flags['skip_kilosort']
                 except Exception as e:
                     skip_ks = False
                     print("exception: {}".format(e))
-                print("flag_file says run kilosrt== {}".format(flags['skip_kilosort']))
-                print("script says run kilosrt== {}".format(skip_ks))
+
                 if (("rez.mat" in os.listdir(d))==False) and (skip_ks == False):
                     with open(session_file, "r") as f:
                         lines = f.readlines()
