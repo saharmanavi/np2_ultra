@@ -38,7 +38,7 @@ class XferFilesRunKS():
         self.xfer_params_file()
         print("------DONE TRANSFERRING FILES--------")
         print("------STARTING KILOSORT--------")
-        if self.mouse_if != "saline":
+        if self.mouse_id != "saline":
             self.run_kilosort()
             print("------DONE WITH KILOSORT {}_{}--------".format(self.date, self.mouse_id))
         else:
@@ -231,7 +231,7 @@ class XferFilesRunKS():
                         skip_ks = flags['skip_kilosort']
                 except Exception as e:
                     skip_ks = False
-                    print("exception: {}".format(e))
+                    # print("exception: {}".format(e))
 
                 if (("rez.mat" in os.listdir(d))==False) and (skip_ks == False):
                     with open(session_file, "r") as f:
