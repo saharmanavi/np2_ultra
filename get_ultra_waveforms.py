@@ -35,8 +35,8 @@ class GetUltraWaveforms():
         self.optoPklFile = glob2.glob(os.path.join(self.recording_dir, '*opto.pkl'))[0]
         #values for ultra probes
         self.numChannels = 384
-        self.probeCols = 8
-        self.probeRows = 48
+        # self.probeCols = 8
+        # self.probeRows = 48
         # self.channelSpacing = 6 # microns
         # self.probeX = np.arange(self.probeCols)*self.channelSpacing
         # self.probeY = np.arange(self.probeRows)*self.channelSpacing
@@ -166,7 +166,7 @@ class GetUltraWaveforms():
             waveforms_dict[str(cluster_num)] = {'waveform': np.squeeze(np.mean(waveform_boots,0))[:, self.channelMap],
                                                 'SNR': np.squeeze(np.mean(SNR_boots,0))[:, self.channelMap] }
 
-            print("{}: {}".format(cluster_num, np.sum(waveforms_dict[str(cluster_num)]['waveform'])))
+            # print("{}: {}".format(cluster_num, np.sum(waveforms_dict[str(cluster_num)]['waveform'])))
 
 
         #add cluster spike times

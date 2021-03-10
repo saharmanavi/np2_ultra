@@ -8,7 +8,8 @@ import json
 
 class XferFilesRunKS():
     """runs in conda env kilosort"""
-    def __init__(self, date, mouse_id, computer_names_file = r"\\10.128.54.155\Data\np2_comp_names.txt"):
+    def __init__(self, date, mouse_id, sort_A = True, computer_names_file = r"\\10.128.54.155\Data\np2_comp_names.txt"):
+        self.sort_A = sort_A
         self.mouse_id = mouse_id
         computer_names = {}
         with open(computer_names_file) as file:
@@ -63,6 +64,8 @@ class XferFilesRunKS():
             data_loc = glob2.glob(os.path.join(self.computer_names['acq'], "*{}*".format(self.date), '**', 'experiment1'))[0]
             # print(data_loc)
             transfer_loc = self.main_folder
+            xml_file = os.path.join(os.path.dirname(data_loc), "settings.xml")
+            shutil.copy(xml_file, os.path.join(transfer_loc, "settings.xml"))
             # print(transfer_loc)
 
             for file in os.listdir(data_loc):
@@ -214,8 +217,13 @@ class XferFilesRunKS():
         data_C = glob2.glob(os.path.join(self.main_folder, 'recording*', 'continuous', '*.2'))
         data_E = glob2.glob(os.path.join(self.main_folder, 'recording*', 'continuous', '*.4'))
 
+        if self.sort_A == False:
+            dir_list = [data_C, data_E]
+        else:
+            dir_list = [data_A, data_C, data_E]
+
         bad_dats = []
-        for dirs in [data_A, data_C, data_E]:
+        for dirs in dir_list:
             if dirs==data_A:
                 session_file = os.path.join(self.main_folder, "kilosort_one_oh_session.m")
                 shutil.copy(kilosort_main_one_oh, session_file)
@@ -252,6 +260,7 @@ class XferFilesRunKS():
                     try:
                         start = time.time()
                         print('starting kilosort on {} {}'.format(d.split("\\")[6], d.split('\\')[-1]))
+                        eng.cd(self.main_folder)
                         if ".0" in d:
                             eng.kilosort_one_oh_session(nargout=0)
                         else:
@@ -276,6 +285,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('date', type=str)
     parser.add_argument('mouse_id', type=str)
+    parser.add_argument('--sort_A', nargs="+", type=bool, default=True)
     args = parser.parse_args()
-    runner = XferFilesRunKS(args.date, args.mouse_id)
+    runner = XferFilesRunKS(args.date, args.mouse_id, args.sort_A)
     runner.run_it()
