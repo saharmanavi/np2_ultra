@@ -77,7 +77,7 @@ class XferFilesRunKS():
         else:
             print("Ephys data already transferred.")
 
-        rename_dict = {0: 'recording1', 1: 'recording2', 2:'recording3', 3: 'recording4'}
+        rename_dict = {0: 'recording1', 1: 'recording2', 2:'recording3', 3: 'recording4', 4: 'recording5'}
         for n, name in enumerate(glob2.glob(os.path.join(self.main_folder, 'recording*'))):
             if "recording" in name:
                 old = name
@@ -223,13 +223,18 @@ class XferFilesRunKS():
             dir_list = [data_A, data_C, data_E]
 
         bad_dats = []
+
+        shutil.copy(kilosort_main_one_oh, os.path.join(self.main_folder, "kilosort_one_oh_session.m"))
+        shutil.copy(kilosort_main_ultra, os.path.join(self.main_folder, "kilosort_ultra_session.m"))
         for dirs in dir_list:
             if dirs==data_A:
                 session_file = os.path.join(self.main_folder, "kilosort_one_oh_session.m")
-                shutil.copy(kilosort_main_one_oh, session_file)
+                if os.path.exists(session_file)==False:
+                    shutil.copy(kilosort_main_one_oh, os.path.join(self.main_folder, "kilosort_one_oh_session.m"))
             else:
                 session_file = os.path.join(self.main_folder, "kilosort_ultra_session.m")
-                shutil.copy(kilosort_main_ultra, session_file)
+                if os.path.exists(session_file)==False:
+                    shutil.copy(kilosort_main_ultra, os.path.join(self.main_folder, "kilosort_ultra_session.m"))
 
             for d in dirs:
                 try:

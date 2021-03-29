@@ -12,7 +12,7 @@ matplotlib.rcParams['pdf.fonttype'] = 42
 
 
 class MakeSessionSummary():
-    def __init__(self, session_date, mouse_id, ultra_only=True):
+    def __init__(self, session_date, mouse_id, ultra_only=False):
         self.session_name = "{}_{}".format(session_date, mouse_id)
         self.root_analysis_dir = r"\\10.128.54.155\Data\analysis"
         self.root_data_dir = r"\\10.128.54.155\Data\np2_data"
@@ -55,6 +55,10 @@ class MakeSessionSummary():
         temp_rec = {}
         for rec in self.recordings:
             try:
+                good_A = len(self.data_dicts[rec]['A']['good_clusters'])
+            except:
+                good_C = 0
+            try:
                 good_C = len(self.data_dicts[rec]['C']['good_clusters'])
             except:
                 good_C = 0
@@ -62,10 +66,14 @@ class MakeSessionSummary():
                 good_E = len(self.data_dicts[rec]['E']['good_clusters'])
             except:
                 good_E = 0
-            r_dict = {'probeC': {'depth': self.session_params['probe_depths'][rec]['probeC'],
+            r_dict = {'probeA': {'depth': self.session_params['probe_depths'][rec]['probeA'],
+                    'num_good_units': good_A},
+                        'probeC': {'depth': self.session_params['probe_depths'][rec]['probeC'],
                                 'num_good_units': good_C},
                       'probeE': {'depth': self.session_params['probe_depths'][rec]['probeE'],
-                                'num_good_units': good_E}}
+                                'num_good_units': good_E},
+                                }
+
             temp_rec[rec] = r_dict
 
         metadata_dict = {'session_date' : self.session_params['date'],
@@ -75,17 +83,26 @@ class MakeSessionSummary():
                         'recordings_info': temp_rec}
         self.metadata_dict = metadata_dict
 
-    def get_raw_ultra_data(self, probe, recording):
-        """probe is just the letter, recording is formatted 'recordingN'"""
-        probeCols = 8
-        probeRows = 48
+    def get_raw_data(self, probe, recording):
+        """recording is formatted 'recordingN'"""
+
         raw_data_file = glob2.glob(os.path.join(self.root_data_dir, self.session_name, recording, "continuous", "*{}".format(self.pxiDict[probe]), "continuous.dat"))[0]
         rawData = np.memmap(raw_data_file,dtype='int16',mode='r')
         rawData = np.reshape(rawData, (int(rawData.size/384), 384)).T
-        return probeRows, probeCols, rawData
+        return rawData
 
-    def plot_probe_qc_ultra(self, probe, recording, axs):
-        probeRows,probeCols,raw_data = self.get_raw_ultra_data(probe, recording)
+    def plot_probe_qc(self, probe, recording, axs):
+        """probe is just the letter, recording is formatted 'recordingN'"""
+        if (probe=='E') or (probe=='C'):
+            probeCols = 8
+            probeRows = 48
+            jmax = 7
+        elif probe=='A':
+            probeCols = 4
+            probeRows = 96
+            jmax = 3
+
+        raw_data = self.get_raw_data(probe, recording)
         probeMean = np.zeros((probeRows,probeCols))
         probeStd = np.zeros((probeRows,probeCols))
         j = 0
@@ -93,7 +110,7 @@ class MakeSessionSummary():
             i = ch//probeCols
             probeMean[i,j] = d.mean()
             probeStd[i,j] = d.std()
-            if j==7:
+            if j==jmax:
                 j = 0
             else:
                 j += 1
@@ -118,11 +135,13 @@ class MakeSessionSummary():
             gd = gs.GridSpec(20,16)
             axtitle = plt.subplot(gd[0,:])
             axnames_1 = plt.subplot(gd[1:3, :5])
-            # axmean_1 = plt.subplot(gd[10:,0])
-            # axstd_1 = plt.subplot(gd[10:,1])
+            axmean_1 = plt.subplot(gd[4:,:2])
+            axstd_1 = plt.subplot(gd[4:,2:4])
+
             axnames_2 = plt.subplot(gd[1:3, 5:11])
             axmean_2 = plt.subplot(gd[4:,5:7])
             axstd_2 = plt.subplot(gd[4:,8:10])
+
             axnames_3 = plt.subplot(gd[1:3, 11:])
             axmean_3 = plt.subplot(gd[4:,11:13])
             axstd_3 = plt.subplot(gd[4:,14:])
@@ -135,9 +154,19 @@ class MakeSessionSummary():
             axtitle.axis('off')
 
             ##probe A stuff
-            axnames_1.text(.5,.5, "no probe A data",
-                           size=14, horizontalalignment='center', verticalalignment='center')
-            axnames_1.axis('off')
+            if (recording, 'A') in self.bad_ones:
+                axnames_1.text(.5,.5, "no Probe A data",
+                               size=14, horizontalalignment='center', verticalalignment='center')
+                axnames_1.axis('off')
+                axmean_1.axis('off')
+                axstd_1.axis('off')
+
+            else:
+                axnames_1.text(.5,.5, "Probe A depth={} \nn_units={}".format(self.metadata_dict['recordings_info'][recording]['probeA']['depth'],
+                                                                           self.metadata_dict['recordings_info'][recording]['probeA']['num_good_units']),
+                               size=14, horizontalalignment='center', verticalalignment='center')
+                axnames_1.axis('off')
+                self.plot_probe_qc(probe='A', recording=recording, axs=[axmean_1, axstd_1])
 
 
             ##probe C stuff
@@ -153,7 +182,7 @@ class MakeSessionSummary():
                                                                            self.metadata_dict['recordings_info'][recording]['probeC']['num_good_units']),
                                size=14, horizontalalignment='center', verticalalignment='center')
                 axnames_2.axis('off')
-                self.plot_probe_qc_ultra(probe='C', recording=recording, axs=[axmean_2, axstd_2])
+                self.plot_probe_qc(probe='C', recording=recording, axs=[axmean_2, axstd_2])
 
             ##probe E stuff
             if (recording, 'E') in self.bad_ones:
@@ -167,7 +196,7 @@ class MakeSessionSummary():
                                                                            self.metadata_dict['recordings_info'][recording]['probeE']['num_good_units']),
                                size=14, horizontalalignment='center', verticalalignment='center')
                 axnames_3.axis('off')
-                self.plot_probe_qc_ultra(probe='E', recording=recording, axs=[axmean_3, axstd_3])
+                self.plot_probe_qc(probe='E', recording=recording, axs=[axmean_3, axstd_3])
 
 
             pdf_file.savefig(fig)
