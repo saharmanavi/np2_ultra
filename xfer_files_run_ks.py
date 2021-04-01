@@ -272,8 +272,9 @@ class XferFilesRunKS():
                             eng.kilosort_ultra_session(nargout=0)
                         end = time.time()
                         print("done with kilosort. that took {}s".format(end-start))
-                    except:
-                        bad_dats.append(d)
+                    except Exception as e:
+                        now = datetime.strftime(datetime.now(), '%Y%m%d-%H%M')
+                        bad_dats.append("{} {} {}".format(now, d, e))
                         pass
                 elif ("rez.mat" in os.listdir(d))==True:
                     print("{} {} has already been processed. Delete rez.mat to reprocess.".format(d.split("\\")[6], d.split('\\')[-1]))
@@ -282,7 +283,7 @@ class XferFilesRunKS():
 
             with open(self.bad_dats_txt, 'a') as f:
                 for line in bad_dats:
-                    f.write(line)
+                    f.write(line + "\n")
 
 
 if __name__ == "__main__":

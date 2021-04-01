@@ -46,11 +46,16 @@ class SessionSummary():
             recordings = [d for d in os.listdir(session_path) if "recording" in d]
             for recording in recordings:
                 recording_dir = os.path.join(session_path, recording, 'continuous')
+
                 objects = []
                 for root, dirs, files in os.walk(recording_dir):
                     objects.append((root, dirs, files))
 
                 npx_folders = os.listdir(recording_dir)
+                if len(npx_folders) != 6:
+                    print("something is missing in {} {}. Maybe it's still transferring?".format(session, recording))
+                    break
+
                 probeA = [r for r in npx_folders if '.0' in r][0]
                 probeC = [r for r in npx_folders if '.2' in r][0]
                 probeE = [r for r in npx_folders if '.4' in r][0]
@@ -90,18 +95,12 @@ class SessionSummary():
             self.save_csv()
 
     def save_csv(self):
-        if (self.overwrite==True):
-            save_path = self.csv_path
-        else:
-            fname = 'np2_session_status_{}.csv'.format(datetime.strftime(datetime.today(), '%Y-%m-%d_%H%M'))
-            save_path = os.path.join(self.file_dir, fname)
+        fname = 'np2_session_status_{}.csv'.format(datetime.strftime(datetime.today(), '%Y-%m-%d_%H%M'))
+        save_path = os.path.join(self.file_dir, fname)
 
         self.df.to_csv(save_path)
         print('saved at {}'.format(save_path))
 
 
-
-
-
 if __name__ == "__main__":
-    SessionSummary().generate_session_df()
+    SessionSummary(save=True).generate_session_df()

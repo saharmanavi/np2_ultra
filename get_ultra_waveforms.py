@@ -5,6 +5,7 @@ import pandas as pd
 import time
 import sys
 import shutil
+import json
 # sys.path.append(r"C:\Users\saharm\Documents\CODE\code_package_downloads\ephys_behavior")
 # from sync.sync.dataset import Dataset
 sys.path.append(r"C:\Users\saharm\Documents\CODE\local_code")
@@ -21,11 +22,18 @@ class GetUltraWaveforms():
                         'E': {'ap': '.4', 'lfp': '.5'},}
         self.probe_label = probe_label
         self.recording_num = recording_num
-        # self.fix_spikes = fix_spikes
         self.session_name = '{}_{}'.format(session_date, mouse_id)
+
         #all the paths
         self.recording_dir = os.path.join(root_dir, 'np2_data', self.session_name, "recording{}".format(recording_num))
-        self.data_dir = glob2.glob(os.path.join(self.recording_dir, 'continuous', "Neuropix-PXI-*{}".format(self.pxiDict[self.probe_label]['ap'])))[0]
+        data_dirs = glob2.glob(os.path.join(self.recording_dir, 'continuous', "Neuropix-PXI-*{}".format(self.pxiDict[self.probe_label]['ap'])))
+        if len(data_dirs) != 1:
+            print("skipping recording {} for {}, looks like this folder doesn't exist".format(recording_num, self.session_name))
+            pass
+        else:
+            self.data_dir = data_dirs[0]
+
+
         self.analysis_dir = os.path.join(root_dir, 'analysis', self.session_name, 'probe{}'.format(self.probe_label))
         events_dir = os.path.join(self.recording_dir, 'events', "Neuropix-PXI-*{}".format(self.pxiDict[self.probe_label]['ap']))
         self.events_dir = glob2.glob(os.path.join(events_dir, 'TTL*'))[0]
@@ -33,18 +41,14 @@ class GetUltraWaveforms():
             os.makedirs(self.analysis_dir)
         self.syncFile = glob2.glob(os.path.join(self.recording_dir, '*sync.h5'))[0]
         self.optoPklFile = glob2.glob(os.path.join(self.recording_dir, '*opto.pkl'))[0]
-        #values for ultra probes
-        self.numChannels = 384
-        # self.probeCols = 8
-        # self.probeRows = 48
-        # self.channelSpacing = 6 # microns
-        # self.probeX = np.arange(self.probeCols)*self.channelSpacing
-        # self.probeY = np.arange(self.probeRows)*self.channelSpacing
+
         #parameters for waveform extraction
+        self.numChannels = 384
         self.TW = 200 #total waveforms
         self.samplesPerSpike = 90
         self.preSamples = 30
         self.boots = 100
+
         #gather parameters
         self.params_dict = {'total_waveforms': self.TW,
                             'samplesPerSpike' : self.samplesPerSpike,
@@ -57,14 +61,33 @@ class GetUltraWaveforms():
 
     def run_it(self):
         start = time.time()
-        print("Getting waveforms for {} {} {}.".format(self.session_name, self.recording_num, self.probe_label))
-        self.get_all_ks_files()
-        self.get_sync_data()
-        self.get_waveforms()
-        self.get_opto_data()
-        self.save_data_dicts()
+        self.skip_wvs = self.check_flags_file('skip_kilosort', self.data_dir, default_cond=False)
+        if self.skip_wvs == True:
+            print("Skipping {} {} {}, looks like there's a problem with this recording.".format(self.session_name, self.recording_num, self.probe_label))
+            break
+        else:
+            print("Getting waveforms for {} {} {}.".format(self.session_name, self.recording_num, self.probe_label))
+            try:
+                self.get_all_ks_files()
+            except FileNotFoundError:
+                flag_text = {'skip_kilosort': True, 'other_notes': "a kilosort file was not found"}
+                self.create_flags_txt(self.data_dir, flag_text)
+                print("Skipping {} {} {} because {}".format(self.session_name, self.recording_num, self.probe_label, flag_text['other_notes']))
+                break
+            self.get_sync_data()
+            self.get_waveforms()
+            self.get_opto_data()
+            self.save_data_dicts()
         end = time.time()
         print("Finished. That took {} seconds.".format(end-start))
+
+    def create_flags_txt(self, folder_loc, flag_text):
+        """folder_loc is the path to the folder where the continuous.dat file is for the probe/recording
+        flag_text is a dictionary with common keys 'skip_kilosort' and 'other_notes'"""
+
+        flag_file = os.path.join(folder_loc, "flags.json")
+        with open(flag_file, 'w') as t:
+            json.dump(flag_text, t)
 
     def fix_spike_times(self, spike_times_file, timestamps_file):
         spike_times = np.load(spike_times_file)
@@ -75,6 +98,15 @@ class GetUltraWaveforms():
             np.save(spike_times_file, spike_times)
         spike_times_old = np.load(os.path.join(self.data_dir, 'spike_times_old.npy'))
         return spike_times, spike_times_old
+
+    def check_flags_file(self, key, path_to_folder, default_cond=False):
+        condition = default_cond
+        flags_file = os.path.join(path_to_folder,'flags.json')
+        if os.path.exists(flags_file):
+            with open(flags_file, 'r') as f:
+                flags = json.load(f)
+                condition = flags[key]
+        return condition
 
     def get_all_ks_files(self):
         clustersFile = os.path.join(self.data_dir,'spike_clusters.npy')
