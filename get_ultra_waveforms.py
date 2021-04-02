@@ -6,8 +6,7 @@ import time
 import sys
 import shutil
 import json
-# sys.path.append(r"C:\Users\saharm\Documents\CODE\code_package_downloads\ephys_behavior")
-# from sync.sync.dataset import Dataset
+
 sys.path.append(r"C:\Users\saharm\Documents\CODE\local_code")
 from ultra_analysis_sahar import get_sync_line_data, getPSTH
 from allensdk.brain_observatory.ecephys.align_timestamps import barcode
@@ -27,12 +26,11 @@ class GetUltraWaveforms():
         #all the paths
         self.recording_dir = os.path.join(root_dir, 'np2_data', self.session_name, "recording{}".format(recording_num))
         data_dirs = glob2.glob(os.path.join(self.recording_dir, 'continuous', "Neuropix-PXI-*{}".format(self.pxiDict[self.probe_label]['ap'])))
-        if len(data_dirs) != 1:
-            print("skipping recording {} for {}, looks like this folder doesn't exist".format(recording_num, self.session_name))
-            pass
-        else:
+        try:
             self.data_dir = data_dirs[0]
-
+        except IndexError:
+            print("skipping recording {} for {}, looks like this folder doesn't exist".format(recording_num, self.session_name))
+            return
 
         self.analysis_dir = os.path.join(root_dir, 'analysis', self.session_name, 'probe{}'.format(self.probe_label))
         events_dir = os.path.join(self.recording_dir, 'events', "Neuropix-PXI-*{}".format(self.pxiDict[self.probe_label]['ap']))
@@ -64,7 +62,7 @@ class GetUltraWaveforms():
         self.skip_wvs = self.check_flags_file('skip_kilosort', self.data_dir, default_cond=False)
         if self.skip_wvs == True:
             print("Skipping {} {} {}, looks like there's a problem with this recording.".format(self.session_name, self.recording_num, self.probe_label))
-            break
+            return
         else:
             print("Getting waveforms for {} {} {}.".format(self.session_name, self.recording_num, self.probe_label))
             try:
@@ -73,7 +71,7 @@ class GetUltraWaveforms():
                 flag_text = {'skip_kilosort': True, 'other_notes': "a kilosort file was not found"}
                 self.create_flags_txt(self.data_dir, flag_text)
                 print("Skipping {} {} {} because {}".format(self.session_name, self.recording_num, self.probe_label, flag_text['other_notes']))
-                break
+                return
             self.get_sync_data()
             self.get_waveforms()
             self.get_opto_data()
