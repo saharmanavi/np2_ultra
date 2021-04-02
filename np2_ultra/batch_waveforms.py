@@ -1,6 +1,5 @@
 import sys
-sys.path.append(r"C:\Users\saharm\Documents\CODE\local_code\np2_processing")
-from get_ultra_waveforms import GetUltraWaveforms
+from .processing.get_ultra_waveforms import GetUltraWaveforms
 import itertools
 
 def batch_run(session_date, mouse_id, recording_nums=["1", "2", "3", "4"], probes=["A", "C", "E"]):

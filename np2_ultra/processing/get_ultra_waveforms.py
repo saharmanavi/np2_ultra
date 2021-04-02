@@ -7,8 +7,7 @@ import sys
 import shutil
 import json
 
-sys.path.append(r"C:\Users\saharm\Documents\CODE\local_code")
-from ultra_analysis_sahar import get_sync_line_data, getPSTH
+from .ultra_tools import get_sync_line_data, getPSTH
 from allensdk.brain_observatory.ecephys.align_timestamps import barcode
 from allensdk.brain_observatory.ecephys.align_timestamps import channel_states as cs
 from allensdk.brain_observatory.sync_dataset import Dataset
