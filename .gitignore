@@ -1,3 +1,4 @@
 # Don't track content of these folders
+__pycache__/*
 */__pycache__/*
 nas_name.txt
