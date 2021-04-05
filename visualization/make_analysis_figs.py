@@ -7,15 +7,15 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-import itertools
-import cv2
+
+
 import matplotlib
 from matplotlib.backends.backend_pdf import PdfPages
 matplotlib.rcParams['pdf.fonttype'] = 42
 
 
 
-class MakeFigs():
+class MakeAnalysisFigs():
     """runs in conda env ecephys"""
     def __init__(self, session_date, mouse_id, recording="all", probe="all", root_dir=r"\\10.128.54.155\Data"):
         """recording: list of ints corresponding to the recording numbers, or 'all' to process all recorsings in session

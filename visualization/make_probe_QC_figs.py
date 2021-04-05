@@ -6,22 +6,24 @@ import matplotlib.gridspec as gs
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib
 from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib
 matplotlib.rcParams['pdf.fonttype'] = 42
 
+from .tools.get_session_files_info import GetFiles
 
-class MakeSessionSummary():
-    def __init__(self, session_date, mouse_id, ultra_only=False):
+
+class MakeQCFigs():
+    def __init__(self, session_date, mouse_id, ultra_only=False, root_dir=r"\\10.128.54.155\Data"):
         self.session_name = "{}_{}".format(session_date, mouse_id)
-        self.root_analysis_dir = r"\\10.128.54.155\Data\analysis"
-        self.root_data_dir = r"\\10.128.54.155\Data\np2_data"
-        self.pxiDict = {'A': '.0', 'C':'.2', 'E': '.4'}
-
         if ultra_only==True:
             self.probes = ['C', 'E']
         else:
             self.probes = ['A', 'C', 'E']
+
+        gf = GetFiles(session_date, mouse_id)
+
+
         r_paths = glob2.glob(os.path.join(self.root_data_dir, self.session_name, "recording*"))
         self.recordings = [os.path.basename(r) for r in r_paths]
         params_file = glob2.glob(os.path.join(self.root_data_dir, self.session_name, "*params.json"))[0]
