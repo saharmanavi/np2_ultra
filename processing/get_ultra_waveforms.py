@@ -7,14 +7,18 @@ import sys
 import shutil
 import json
 
-from .ultra_tools import get_sync_line_data, getPSTH
+from ..tools.ultra_tools import get_sync_line_data, getPSTH
+from ..tools.io_tools import read_computer_names
+
 from allensdk.brain_observatory.ecephys.align_timestamps import barcode
 from allensdk.brain_observatory.ecephys.align_timestamps import channel_states as cs
 from allensdk.brain_observatory.sync_dataset import Dataset
 
 class GetUltraWaveforms():
     """runs in conda env ecephys"""
-    def __init__(self, probe_label, session_date, mouse_id, recording_num, root_dir=r"\\10.128.54.155\Data"):
+    def __init__(self, probe_label, session_date, mouse_id, recording_num):
+        computer_names = read_computer_names()
+        root_dir = computer_names['dest_root']
         self.pxiDict = {'A': {'ap': '.0', 'lfp': '.1'},
                         'C': {'ap': '.2', 'lfp': '.3'},
                         'E': {'ap': '.4', 'lfp': '.5'},}

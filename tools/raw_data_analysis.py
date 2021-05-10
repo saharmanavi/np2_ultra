@@ -8,7 +8,7 @@ from datetime import datetime
 from allensdk.brain_observatory.ecephys.align_timestamps import barcode
 from allensdk.brain_observatory.ecephys.align_timestamps import channel_states as cs
 from allensdk.brain_observatory.sync_dataset import Dataset
-from ..processing.ultra_tools import get_sync_line_data
+from ultra_tools import get_sync_line_data
 
 
 def get_sync_data(sync_file):

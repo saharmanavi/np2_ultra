@@ -6,17 +6,15 @@ import shutil
 import matlab.engine
 import json
 
+from ..tools.io_tools import read_computer_names
+
 class XferFilesRunKS():
     """runs in conda env kilosort"""
-    def __init__(self, date, mouse_id, sort_A = True, destination=('dest_root', 'np2_data'), computer_names_file = r"\\10.128.54.155\Data\np2_comp_names.txt"):
+    def __init__(self, date, mouse_id, sort_A = True, destination=('dest_root', 'np2_data'):
         self.sort_A = sort_A
         self.mouse_id = mouse_id
-        computer_names = {}
-        with open(computer_names_file) as file:
-            for f in file:
-                f = f.strip()
-                computer_names[f.split(':')[0]] = f.split(':')[1]
-        self.computer_names = computer_names
+
+        self.computer_names = read_computer_names()
         if date == 'today':
             self.date = datetime.strftime(datetime.today(), '%Y-%m-%d')
         else:
@@ -208,8 +206,8 @@ class XferFilesRunKS():
             pass
 
     def run_kilosort(self):
-        kilosort_main_ultra = r"\\10.128.54.155\Data\kilosort_files\kilosort_main_ultra.m"
-        kilosort_main_one_oh = r"\\10.128.54.155\Data\kilosort_files\kilosort_main_one_oh.m"
+        kilosort_main_ultra = r"..\\files\kilosort_main_ultra.m"
+        kilosort_main_one_oh = r"..\\files\kilosort_main_one_oh.m"
         eng = matlab.engine.start_matlab()
         eng.addpath(self.main_folder, nargout=0)
 
@@ -286,12 +284,12 @@ class XferFilesRunKS():
                     f.write(line + "\n")
 
 
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('date', type=str)
-    parser.add_argument('mouse_id', type=str)
-    parser.add_argument('--sort_A', nargs="+", type=bool, default=True)
-    args = parser.parse_args()
-    runner = XferFilesRunKS(args.date, args.mouse_id, args.sort_A)
-    runner.run_it()
+# if __name__ == "__main__":
+#     import argparse
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('date', type=str)
+#     parser.add_argument('mouse_id', type=str)
+#     parser.add_argument('--sort_A', nargs="+", type=bool, default=True)
+#     args = parser.parse_args()
+#     runner = XferFilesRunKS(args.date, args.mouse_id, args.sort_A)
+#     runner.run_it()

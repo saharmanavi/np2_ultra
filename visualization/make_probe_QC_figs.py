@@ -12,7 +12,6 @@ matplotlib.rcParams['pdf.fonttype'] = 42
 
 from ..tools.get_session_files_info import GetFiles
 
-
 class MakeQCFigs():
     def __init__(self, session_date, mouse_id, ultra_only=False, root_dir=r"\\10.128.54.155\Data"):
         self.session_name = "{}_{}".format(session_date, mouse_id)
@@ -51,6 +50,15 @@ class MakeQCFigs():
         axs[1].set_title('raw std')
 
     def make_pdf(self, save_dir, data_dirs_dict, metadata_dict):
+        ax_dict = {'A': {'name': axnames_1,
+                        'mean': axmean_1,
+                        'std': axstd_1},
+                    'C': {'name': axnames_2,
+                        'mean': axmean_2,
+                        'std': axstd_2},
+                    'E': {'name': axnames_3,
+                        'mean': axmean_3,
+                        'std': axstd_3}}
 
         pdf_file = PdfPages(os.path.join(save_dir, '{}_session_summary.pdf'.format(self.gf.s_id)))
         for recording in data_dirs_dict.keys():
@@ -70,16 +78,6 @@ class MakeQCFigs():
             axnames_3 = plt.subplot(gd[1:3, 11:])
             axmean_3 = plt.subplot(gd[4:,11:13])
             axstd_3 = plt.subplot(gd[4:,14:])
-
-            ax_dict = {'A': {'name': axnames_1,
-                            'mean': axmean_1,
-                            'std': axstd_1},
-                        'C': {'name': axnames_2,
-                            'mean': axmean_2,
-                            'std': axstd_2},
-                        'E': {'name': axnames_3,
-                            'mean': axmean_3,
-                            'std': axstd_3}}
 
             axtitle.text(.5,.5,"{} {} {} {}".format(metadata_dict['date'],
                                                     metadata_dict['mouse_id'],
