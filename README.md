@@ -1,11 +1,13 @@
-Widefield Analysis
+Neuropixels Ultra ETL & analysis tools
 ==============================
 
-Package for analyzing 2-photon imaging and behavior data. Readme info mostly copied from Justin Kiggins
+Package for extracting data from NP ultra experiments to storage drives, running Kilosort and first pass data processing, basic figure generation.
 
+Code by Sahar Manavi except where otherwise specified.
+
+Readme info mostly copied from Justin Kiggins.
 
 ## Installation
-
 This package is designed to be installed using standard Python packaging tools. For example,
 
     python setup.py install
@@ -40,4 +42,3 @@ Pull requests are welcome.
 ## Contributors:
 
 - Sahar Manavi - saharm@alleninstitute.org
-
