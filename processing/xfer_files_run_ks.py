@@ -8,7 +8,7 @@ import json
 
 class XferFilesRunKS():
     """runs in conda env kilosort"""
-    def __init__(self, date, mouse_id, sort_A = True, computer_names_file = r"\\10.128.54.155\Data\np2_comp_names.txt"):
+    def __init__(self, date, mouse_id, sort_A = True, destination=('dest_root', 'np2_data'), computer_names_file = r"\\10.128.54.155\Data\np2_comp_names.txt"):
         self.sort_A = sort_A
         self.mouse_id = mouse_id
         computer_names = {}
@@ -21,7 +21,7 @@ class XferFilesRunKS():
             self.date = datetime.strftime(datetime.today(), '%Y-%m-%d')
         else:
             self.date = date
-        self.destination_folder = os.path.join(computer_names['dest_root'], "np2_data")
+        self.destination_folder = os.path.join(computer_names[destination[0]], destination[1])
         self.main_folder = os.path.join(self.destination_folder, self.date +'_' + self.mouse_id)
         if os.path.exists(self.main_folder)==False:
             os.mkdir(self.main_folder)

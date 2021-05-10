@@ -33,6 +33,7 @@ def get_sync_line_data(syncDataset, line_label=None, channel=None):
         print('Must specify either line label or channel id')
         return
 
+    # sample_freq = 5000.
     sample_freq = syncDataset.meta_data['ni_daq']['counter_output_freq']
     rising = syncDataset.get_rising_edges(channel)/sample_freq
     falling = syncDataset.get_falling_edges(channel)/sample_freq

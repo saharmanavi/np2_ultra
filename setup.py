@@ -1,14 +1,14 @@
 import setuptools
 
 setuptools.setup(
-    name="wf_analysis",
+    name="np2_ultra",
     version="0.1.0",
-    url="https://github.com/saharmanavi/wf_analysis",
+    url="https://github.com/saharmanavi/np2_ultra",
 
     author="Sahar Manavi",
     author_email="saharm@alleninstitute.org",
 
-    description="analysis for chronic widefield imaging during change detection task",
+    description="process and analyze neuropixels ultra data collected from NP2",
     long_description=open('README.md').read(),
 
     packages=setuptools.find_packages(),
@@ -16,12 +16,14 @@ setuptools.setup(
     install_requires=[],
 
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
+        # 'Development Status :: 2 - Pre-Alpha',
+        # 'Programming Language :: Python',
+        # 'Programming Language :: Python :: 2',
+        # 'Programming Language :: Python :: 2.7',
         # 'Programming Language :: Python :: 3',
         # 'Programming Language :: Python :: 3.4',
-        # 'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 )

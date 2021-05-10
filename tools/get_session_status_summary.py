@@ -16,7 +16,7 @@ class SessionSummary():
         self.analysis_dir = r"\\10.128.54.155\Data\analysis"
         self.file_dir = r"\\10.128.54.155\Data\session_processing_status"
         self.pxiDict = {'.0': 'A', '.2': 'C', '.4':'E'}
-        self.columns=["session", "recording", "probe", "dat_file", "rez.mat", "analysis_pkl", "flags"]
+        self.columns=["session", "recording", "probe", "dat_file", "rez.mat", "analysis_pkl", "flags", "genotype"]
 
     def get_latest_in_dir(self, directory):
         """gets the most recently modified item in the directory"""
@@ -43,6 +43,13 @@ class SessionSummary():
             session_path = os.path.join(self.data_dir, session)
             analysis_path = os.path.join(self.analysis_dir, session)
 
+            try:
+                params_file = os.path.join(session_path, "{}_sess_params.json".format(session))
+                with open(params_file, 'r') as p:
+                    params = json.load(p)
+                    genotype = params['genotype'].lower()
+            except:
+                genotype = "none"
             recordings = [d for d in os.listdir(session_path) if "recording" in d]
             for recording in recordings:
                 recording_dir = os.path.join(session_path, recording, 'continuous')
@@ -77,6 +84,7 @@ class SessionSummary():
                     check_df.at[n, 'dat_file'] = int(dat_file)
                     check_df.at[n, 'rez.mat'] = int(mat_file)
                     check_df.at[n, 'analysis_pkl'] = len(analysis_file)
+                    check_df.at[n, 'genotype'] = genotype
 
                     if flags_file==True:
                         flags_loc = os.path.join([t for t in objects if probe in t[0]][0][0], 'flags.json')
@@ -88,7 +96,7 @@ class SessionSummary():
                         check_df.at[n, 'flags'] = ""
 
                     n += 1
-        check_df = check_df.set_index(['session', 'recording', 'probe'])
+        check_df = check_df.set_index(['genotype', 'session', 'recording', 'probe'])
         self.df = check_df
 
         if self.save==True:

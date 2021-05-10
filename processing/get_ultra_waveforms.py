@@ -235,16 +235,14 @@ class GetUltraWaveforms():
         # optotagging
         self.optoPklData = pd.read_pickle(self.optoPklFile)
 
-        optoSampleRate = 5000.
-        opto_channel = self.syncDataset._line_to_bit('stim_trial_opto')
+        # optoSampleRate = 5000.
+        # opto_channel = self.syncDataset._line_to_bit('stim_trial_opto')
         # self.optoOnTimes = self.syncDataset.get_rising_edges(opto_channel)
         # optoOffTimes = self.syncDataset.get_falling_edges(opto_channel)
         self.optoOnTimes,optoOffTimes = get_sync_line_data(self.syncDataset,'stim_trial_opto')
 
         optoConditions = np.unique(self.optoPklData['opto_conditions'])
         optoLevels = np.unique(self.optoPklData['opto_levels'])
-        cmap = np.ones((len(optoLevels),3))
-        cmap[:,:2] = np.arange(0,1.01-1/len(optoLevels),1/len(optoLevels))[::-1,None]
         self.preTime = 0.5
         self.windowDur = 2
 
