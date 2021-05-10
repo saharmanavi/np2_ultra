@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="np2_ultra",
-    version="0.1.0",
+    version="0.2.0",
     url="https://github.com/saharmanavi/np2_ultra",
 
     author="Sahar Manavi",
@@ -13,17 +13,19 @@ setuptools.setup(
 
     packages=setuptools.find_packages(),
 
-    install_requires=[],
+    install_requires=[
+                        'matlab',
+                        'pandas',
+                        'numpy',
+                        'allensdk',
+                        'matplotlib',
+                        'seaborn',
+                        'glob2',
+                                ],
 
     classifiers=[
-        # 'Development Status :: 2 - Pre-Alpha',
-        # 'Programming Language :: Python',
-        # 'Programming Language :: Python :: 2',
-        # 'Programming Language :: Python :: 2.7',
-        # 'Programming Language :: Python :: 3',
-        # 'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-    ],
+                                                ],
 )
