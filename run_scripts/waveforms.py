@@ -1,5 +1,5 @@
 import sys
-from ..processing.get_ultra_waveforms import GetUltraWaveforms
+from npultra.processing.get_ultra_waveforms import GetUltraWaveforms
 import itertools
 
 def batch_run(session_date, mouse_id, recording_nums=["1", "2", "3", "4"], probes=["A", "C", "E"]):

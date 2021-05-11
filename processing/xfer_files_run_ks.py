@@ -6,11 +6,16 @@ import shutil
 import matlab.engine
 import json
 
-from ..tools.io_tools import read_computer_names
+# from ..tools.io_tools import read_computer_names
+
+def read_computer_names():
+    with open(r"..\files\np2_comp_names.json", "r") as c:
+        comp_dict = json.load(c)
+    return comp_dict
 
 class XferFilesRunKS():
     """runs in conda env kilosort"""
-    def __init__(self, date, mouse_id, sort_A = True, destination=('dest_root', 'np2_data'):
+    def __init__(self, date, mouse_id, sort_A = True, destination=('dest_root', 'np2_data')):
         self.sort_A = sort_A
         self.mouse_id = mouse_id
 
@@ -19,7 +24,7 @@ class XferFilesRunKS():
             self.date = datetime.strftime(datetime.today(), '%Y-%m-%d')
         else:
             self.date = date
-        self.destination_folder = os.path.join(computer_names[destination[0]], destination[1])
+        self.destination_folder = os.path.join(self.computer_names[destination[0]], destination[1])
         self.main_folder = os.path.join(self.destination_folder, self.date +'_' + self.mouse_id)
         if os.path.exists(self.main_folder)==False:
             os.mkdir(self.main_folder)
@@ -284,12 +289,12 @@ class XferFilesRunKS():
                     f.write(line + "\n")
 
 
-# if __name__ == "__main__":
-#     import argparse
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('date', type=str)
-#     parser.add_argument('mouse_id', type=str)
-#     parser.add_argument('--sort_A', nargs="+", type=bool, default=True)
-#     args = parser.parse_args()
-#     runner = XferFilesRunKS(args.date, args.mouse_id, args.sort_A)
-#     runner.run_it()
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('date', type=str)
+    parser.add_argument('mouse_id', type=str)
+    parser.add_argument('--sort_A', nargs="+", type=bool, default=True)
+    args = parser.parse_args()
+    runner = XferFilesRunKS(args.date, args.mouse_id, args.sort_A)
+    runner.run_it()

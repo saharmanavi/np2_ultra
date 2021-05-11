@@ -2,7 +2,7 @@ import os
 import shutil
 import glob2
 import time
-from ..processing.xfer_files_run_ks import XferFilesRunKS
+from xfer_files_run_ks import XferFilesRunKS
 
 if __name__ == "__main__":
     import argparse
