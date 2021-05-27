@@ -1,0 +1,14 @@
+##enter the names of the respect computers (usually starts with W10)
+##standard MPE paths are pre-filled in but can be altered as needed.
+##DO NOT change the key names, as the scripts read this file based on the keys.
+##all comments will need to be deleted from this template before it will work.
+
+{"stim": "\\\\<computer_name>\\c\\ProgramData\\camstim\\output", #stimulus computer
+  "sync": "\\\\<computer_name>\\c\\ProgramData\\AIBS_MPE\\sync\\data",  #sync computer
+  "video_eye_beh": "\\\\<computer_name>\\c\\ProgramData\\AIBS_MPE\\mvr\\data", #videomon computer
+  "video_brain_img": "\\\\<computer_name>\\C\\ProgramData\\AIBS_MPE\\cv3dImages",  #videomon computer
+  "video_sess_params": "\\\\<computer_name>\\c\\ProgramData\\AIBS_MPE\\session_params",  #videomon computer
+  "acq": "\\\\<computer_name>\\g", #acquisition computer
+  "dest_root": "\\\\<computer_name>\\Data", #synology drive IP address
+  "backup_drive": "\\\\<computer_name>\\e" #acquisition computer
+}
