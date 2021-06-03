@@ -34,3 +34,15 @@ def read_pxi_dict(probe_config="4_probes", path_to_json=None):
             pxi_dict = pxi_dict[probe_config]
         os.chdir(current_dir)
     return pxi_dict
+
+
+def get_paths_to_kilosort_templates():
+    '''
+    Returns the locations of the kilosort template .m files for the 1.0 and ultra probe sorting.
+    '''
+    current_dir = os.getcwd()
+    os.chdir(os.path.dirname(files.__file__))
+    one_oh = os.path.join(os.getcwd(), "kilosort_main_one_oh.m")
+    ultra = os.path.join(os.getcwd(), "kilosort_main_ultra.m")
+    os.chdir(current_dir)
+    return one_oh, ultra
