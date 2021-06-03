@@ -5,7 +5,9 @@ import numpy as np
 import pandas as pd
 import json
 
-import io
+import .io as io
+
+print(io.__file__)
 
 class GetFiles():
     """runs in conda env ecephys"""
@@ -45,6 +47,8 @@ class GetFiles():
             print("The session recording directories are available as recording_dirs.")
 
     def get_probe_dirs(self, probes):
+        if self.recording_dirs==False:
+            self.determine_recordings("all")
         probe_data_dirs = {}
         for recording in self.recording_dirs:
             temp = {}
@@ -114,13 +118,18 @@ class GetFiles():
             print("There is no analysis file for this recording/probe combo.")
             return
 
-    def get_raw_data(self, recording, probe):
+    def get_raw_data(self, recording, probe, band='spike'):
         """
         recording: str in format "recordingN" where N is the recording number
         probe: str in format of a capital letter indicating the probe cartridge position
         raw_data: raw data as a numpy memmap array
         """
-        data_dir = 
+        if self.probe_data_dirs==False:
+            self.get_probe_dirs("all")
+        if band=='spike':
+            data_dir = self.probe_data_dirs[recording][probe]
+        elif band=='lfp':
+            data_dir = os.path.join()
         raw_data_file = os.path.join(data_dir, "continuous.dat")
         rawData = np.memmap(raw_data_file,dtype='int16',mode='r')
         raw_data = np.reshape(rawData, (int(rawData.size/384), 384)).T
@@ -149,7 +158,7 @@ class GetFiles():
             y_start = 20
             probeY = np.arange(y_start, y_spacing*n_row+1, y_spacing)
 
-        elif (probe=='C') or (probe=='E'):
+        else:
             probeRows = 48
             probeCols = 8
             channelSpacing = 6 # microns
