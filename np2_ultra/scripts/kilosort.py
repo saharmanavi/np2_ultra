@@ -30,7 +30,7 @@ class RunKilosort():
     def get_all_file_locations(self):
         self.get_files = file_tools.GetFiles(self.date, self.mouse_id)
         self.main_folder = self.get_files.session_dir
-
+        self.bad_dats_txt = os.path.join(self.main_folder, "bad_dat_files.txt")
         self.get_files.get_probe_dirs(probes='all')
         self.probe_dict = self.get_files.probe_data_dirs
         self.path_to_ks_one_oh, self.path_to_ks_ultra = io.get_paths_to_kilosort_templates()
@@ -120,7 +120,6 @@ class RunKilosort():
 
 if __name__ == "__main__":
     import argparse
-    import json
     parser = argparse.ArgumentParser()
     parser.add_argument('date', type=str)
     parser.add_argument('mouse_id', type=str)

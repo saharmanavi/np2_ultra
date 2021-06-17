@@ -42,10 +42,11 @@ class GetWaveforms():
 
     def get_directories(self, recordings, probes):
         self.get_files = file_tools.GetFiles(self.date, self.mouse_id)
-        self.get_files.get_probe_dirs(probes=probes)
-        self.get_files.get_events_dir(probes=probes)
+        self.get_files.determine_recordings(recordings=recordings)
         self.recording_dirs = self.get_files.recording_dirs
+        self.get_files.get_probe_dirs(probes=probes)
         self.probe_data_dirs = self.get_files.probe_data_dirs
+        self.get_files.get_events_dir(probes=probes)
         self.events_dirs = self.get_files.event_dirs
         self.analysis_dir = self.get_files.analysis_dir
         if os.path.exists(self.analysis_dir)==False:
@@ -104,8 +105,10 @@ class GetWaveforms():
                         'spike_times': 'spike_times.npy',
                         'channel_map': 'channel_map.npy',}
 
-        self.spike_times_opto, self.spike_times_wf = ant.fix_spike_times(os.path.join(data_dir, ks_file_dict['spike_times']),
-                                                                        os.path.join(self.recording_dirs[recording], 'timestamps.npy'),
+        timestamps_file = os.path.join(self.recording_dirs[recording], 'timestamps.npy')
+        self.recording_timestamp_zero  = np.load(timestamps_file)[0]
+        self.spike_times_opto, self.spike_times_wf= ant.fix_spike_times(os.path.join(data_dir, ks_file_dict['spike_times']),
+                                                                        timestamps_file,
                                                                         data_dir)
         self.clusters = np.load(os.path.join(data_dir, ks_file_dict['spike_clusters']))
         self.channel_map = np.squeeze(np.load(os.path.join(data_dir, ks_file_dict['channel_map'])))
@@ -177,9 +180,9 @@ class GetWaveforms():
         events_folder = self.events_dirs[recording][probe]
         channel_states = np.load(os.path.join(events_folder,'channel_states.npy'))
         event_times = np.load(os.path.join(events_folder,'timestamps.npy'))
+        event_times = event_times - self.recording_timestamp_zero
         probe_barcode_times, probe_barcodes = cs.extract_barcodes_from_states(channel_states,
                                                                                 event_times, self.probe_sample_rate)
-
         # compute time shift between ephys and sync
         self.probeShift, __, ___ = barcode.get_probe_time_offset(master_times = self.sync_barcode_times,
                                                         master_barcodes = self.sync_barcodes,
@@ -222,13 +225,15 @@ class GetWaveforms():
                     'opto_data': self.opto_response_dict}
 
         self.data_dict = save_dict
-        pd.to_pickle(save_dict, os.path.join(self.analysis_dir, 'extracted_data_recording{}_probe{}.pkl'.format(recording, probe)))
-        print('data dictionary saved in {}'.format(self.analysis_dir))
+        save_folder = os.path.join(self.analysis_dir, "probe{}".format(probe))
+        if os.path.exists(save_folder)==False:
+            os.makedirs(save_folder)
+        pd.to_pickle(save_dict, os.path.join(save_folder, 'extracted_data_{}_probe{}.pkl'.format(recording, probe)))
+        print('data dictionary saved in {}'.format(save_folder))
 
 
 if __name__ == "__main__":
     import argparse
-    import json
     parser = argparse.ArgumentParser()
     parser.add_argument('date', type=str)
     parser.add_argument('mouse_id', type=str)

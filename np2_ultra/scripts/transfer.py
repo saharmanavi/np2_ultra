@@ -5,6 +5,8 @@ import time
 import shutil
 import json
 
+import np2_ultra.files as files
+
 class TransferFiles():
     def __init__(self, date, mouse_id, destination=('dest_root', 'np2_data'), openephys_folder='false', path_to_files=None):
         '''
@@ -24,7 +26,7 @@ class TransferFiles():
         '''
 
         if path_to_files==None:
-            self.path_to_files = r"..\\files"
+            self.path_to_files = os.path.dirname(files.__file__)
         else:
             self.path_to_files = path_to_files
 
@@ -67,6 +69,7 @@ class TransferFiles():
         print("date: {}, mouse: {}".format(self.date, self.mouse_id))
         print("looking in {}".format(self.computer_names['acq']))
         print("------TRANSFERRING ALL FILES--------")
+        print("transferring to {}".format(self.destination_folder))
         self.xfer_ephys_data()
         self.xfer_sync_data()
         self.xfer_opto_data()
@@ -77,7 +80,7 @@ class TransferFiles():
 
     def get_date_modified(self, file_path, date_format=False):
         timestamp = datetime.fromtimestamp(os.stat(file_path).st_ctime)
-        if date_format!=False:
+        if date_format != False:
             timestamp = datetime.strftime(timestamp, date_format)
         return timestamp
 
@@ -86,7 +89,7 @@ class TransferFiles():
         print("Transferring ephys data.")
 
         if len(glob2.glob(os.path.join(self.main_folder, 'recording*'))) == 0:
-            transfer_ephys_data=True
+            transfer_ephys_data = True
         else:
             transfer_ephys_data = False
 
@@ -152,15 +155,18 @@ class TransferFiles():
                 sync_timestamp = self.get_date_modified(sync_file)
                 if sync_timestamp.time() > self.experiment_timestamp:
                     modified_sync_files_list.append(sync_file)
-            self.session_sync_files = sorted(modified_sync_files_list)
+            # self.session_sync_files = sorted(modified_sync_files_list)
+            self.session_sync_files = [(fullpath, datetime.fromtimestamp(os.stat(fullpath).st_ctime)) for fullpath in modified_sync_files_list]
         else:
-            self.session_sync_files = sorted(session_sync_files)
+            self.session_sync_files = [(fullpath, datetime.fromtimestamp(os.stat(fullpath).st_ctime)) for fullpath in session_sync_files]
+            # self.session_sync_files = sorted(session_sync_files)
+        self.session_sync_files.sort(key = lambda x: x[1])
 
         for n, name in enumerate(sorted(glob2.glob(os.path.join(self.main_folder, 'recording*')))):
             if len(glob2.glob(os.path.join(name, "*sync.h5"))) == 0:
-                shutil.copy(self.session_sync_files[n], name)
-                old = os.path.join(name, os.path.basename(self.session_sync_files[n]))
-                new = os.path.join(name, os.path.basename(self.session_sync_files[n]).split('.')[0] + "_sync.h5")
+                shutil.copy(self.session_sync_files[n][0], name)
+                old = os.path.join(name, os.path.basename(self.session_sync_files[n][0]))
+                new = os.path.join(name, os.path.basename(self.session_sync_files[n][0]).split('.')[0] + "_sync.h5")
                 os.rename(old, new)
                 print('sync file transferred to {}'.format(os.path.basename(name)))
             else:

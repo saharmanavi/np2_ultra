@@ -41,7 +41,7 @@ class GetFiles():
         if recordings == "all":
             self.recording_dirs = {d:os.path.join(self.session_dir, d) for d in os.listdir(self.session_dir) if "recording" in d}
         else:
-            self.recording_dirs = {r:os.path.join(self.session_dir, "recording{}".format(r)) for r in recordings}
+            self.recording_dirs = {r:os.path.join(self.session_dir, r) for r in recordings}
         if self.verbose==True:
             print("The session recording directories are available as recording_dirs.")
 
