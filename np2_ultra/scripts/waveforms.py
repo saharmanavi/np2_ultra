@@ -170,7 +170,7 @@ class GetWaveforms():
         for n, key in enumerate(waveforms_dict.keys()):
             k  = int(key)
             in_cluster = np.where(self.clusters == k)[0]
-            waveforms_dict[str(key)]['spike_times'] = np.squeeze(self.spike_times_opto[in_cluster]) / self.probe_sample_rate - self.probeShift
+            waveforms_dict[str(key)]['spike_times'] = np.squeeze(self.spike_times_wf[in_cluster]) / self.probe_sample_rate - self.probeShift
 
         self.waveforms_dict = waveforms_dict
 

@@ -79,7 +79,7 @@ class TransferFiles():
         print("------DONE TRANSFERRING FILES {}_{}--------".format(self.date, self.mouse_id))
 
     def get_date_modified(self, file_path, date_format=False):
-        timestamp = datetime.fromtimestamp(os.stat(file_path).st_ctime)
+        timestamp = datetime.fromtimestamp(os.stat(file_path).st_mtime)
         if date_format != False:
             timestamp = datetime.strftime(timestamp, date_format)
         return timestamp

@@ -10,7 +10,7 @@ import np2_ultra.tools.io as io
 
 class GetFiles():
     """runs in conda env ecephys"""
-    def __init__(self, session_date, mouse_id, recordings="all", probes="all", verbose=False):
+    def __init__(self, session_date, mouse_id, probes="all", recordings="all", verbose=False):
         """recording: list of ints corresponding to the recording numbers, or 'all' to process all recordings in session
             probe: list of probes to process, or 'all' to process all probes in session"""
         self.verbose = verbose
