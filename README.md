@@ -1,16 +1,16 @@
-Current to do list:
-Documentation
-Tools for data cube exploration.
-Tools for basic figure generation.
-
 Neuropixels Ultra ETL & analysis tools
 ==============================
-
 Package for extracting data from NP ultra experiments to storage drives, running Kilosort and first pass data processing, basic figure generation.
 
 Code by Sahar Manavi except where otherwise specified.
 
 Readme info mostly copied from Justin Kiggins.
+
+
+## Current to do list
+Documentation
+Tools for data cube exploration.
+Tools for basic figure generation.
 
 ## Installation
 This package is designed to be installed using standard Python packaging tools. For example,
@@ -40,7 +40,7 @@ Matlab engine + Matlab and Kilosort installed, in addition to appropriate hardwa
 
 Current entry points are located in top-level folder:
   backup_session.py
-  process_session.py 
+  process_session.py
 
 Each script in scripts can also be run independently.
 
