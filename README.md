@@ -8,9 +8,9 @@ Readme info mostly copied from Justin Kiggins.
 
 
 ## Current to do list
-Documentation
-Tools for data cube exploration.
-Tools for basic figure generation.
+Documentation. \
+Tools for data cube exploration. \
+Tools for basic figure generation. \
 
 ## Installation
 This package is designed to be installed using standard Python packaging tools. For example,
@@ -28,12 +28,12 @@ If you are plan to contribute to the development of the package, I recommend ins
 This ensures that Python uses the current, active files in the folder (even while switching between branches).
 
 ## Required Libraries
-AllenSDK
-glob2
-Numpy
-pandas
-
-to run kilosort:
+AllenSDK \
+glob2 \
+Numpy \
+pandas \
+\
+to run kilosort: \
 Matlab engine + Matlab and Kilosort installed, in addition to appropriate hardware specs.
 
 ## API
