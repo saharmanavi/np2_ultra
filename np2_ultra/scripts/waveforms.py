@@ -15,8 +15,38 @@ from allensdk.brain_observatory.ecephys.align_timestamps import channel_states a
 from allensdk.brain_observatory.sync_dataset import Dataset
 
 class GetWaveforms():
-    """runs in conda env ecephys"""
+    """
+    Process kilosort spike sorting output into dictionary of averaged waveform and opto stimulation data.
+
+    Methods
+    ----------
+    get_directories(recordings = recordings_to_run, probes = probes_to_run)
+    waveform_extraction_params(use_json_params=use_json_params)
+    run_it()
+    get_recording_sync_opto(recording)
+    get_recording_and_probe(recording, probe)
+    get_all_ks_files(recording, probe)
+    get_probe_sync_data(recording, probe)
+    get_waveforms(recording, probe)
+    get_opto_data()
+    save_data_dicts(recording, probe)
+
+    """
     def __init__(self, date, mouse_id, probes_to_run='all', recordings_to_run='all', use_json_params=None):
+        """
+        Parameters
+        ----------
+        date: str
+            The date of the session in YYYY-MM-DD format
+        mouse_id: str
+            The 6 digit mouse number
+        probes_to_run: list of strings, optional
+            For if you want to run a subset of the probes in the session. Pass a list of probe letters, eg ['C', 'E']. default runs all
+        recording_to_run: list of strings, optional
+            For if you want to run a subset of the recordings in the session. Pass a list of recording IDs, eg ['recording2', 'recording3']. default runs all
+        use_json_params: path
+            To specify custom waveform parameters. Pass the location of a JSON file containing a dictionary with the parameters. default is None
+        """
         self.date = date
         self.mouse_id = mouse_id
         self.computer_names = io.read_computer_names()
@@ -27,6 +57,10 @@ class GetWaveforms():
         self.waveform_extraction_params(use_json_params=use_json_params)
 
     def run_it(self):
+        """
+        Runs waveform extraction and saves dictionaries for recordings and probes specified.
+        if __name__ == __main__ automatically calls this function.
+        """
         for recording in self.recording_dirs.keys():
             self.get_recording_sync_opto(recording)
 
@@ -41,6 +75,9 @@ class GetWaveforms():
 
 
     def get_directories(self, recordings, probes):
+        """
+        Collects all the relevant file locations and directories for the entire session. Is initialized in __init__.
+        """
         self.get_files = file_tools.GetFiles(self.date, self.mouse_id)
         self.get_files.determine_recordings(recordings=recordings)
         self.recording_dirs = self.get_files.recording_dirs
@@ -53,9 +90,10 @@ class GetWaveforms():
             os.makedirs(self.analysis_dir)
         self.session_name = self.get_files.s_id
 
-
-    #parameters for waveform extraction
     def waveform_extraction_params(self, use_json_params=None):
+        """
+        Sets the waveform extraction parameters for the session. Is initialized in __init__.
+        """
         if use_json_params is not None:
             with open(use_json_params, 'r') as params:
                 extraction_params = json.load(params)
@@ -70,6 +108,10 @@ class GetWaveforms():
         self.extraction_params = extraction_params
 
     def get_recording_sync_opto(self, recording):
+        """
+        Gets and unpacks sync and opto timestamp data for the recording being currently processed.
+        Is run once per recording.
+        """
         recording_folder = self.recording_dirs[recording]
 
         sync_file = glob2.glob(os.path.join(recording_folder, '*sync.h5'))[0]
@@ -91,6 +133,10 @@ class GetWaveforms():
         self.opto_on_times,opto_off_times = ant.get_sync_line_data(self.sync_dataset,'stim_trial_opto')
 
     def get_recording_and_probe(self, recording, probe):
+        """
+        Define recording and probe names for this loop of extraction.
+        Is run once per recording/probe combo.
+        """
         self.session_info = {'session_name': self.session_name,
                            'probe_label': probe,
                            'recording_number': recording}
@@ -98,7 +144,8 @@ class GetWaveforms():
 
     def get_all_ks_files(self, recording, probe):
         '''
-        This is done 1 recording/probe at a time.
+        Get and read all relevant kilosort files.
+        Is run once per recording/probe combo.
         '''
         data_dir = self.probe_data_dirs[recording][probe]
         ks_file_dict = {'spike_clusters': 'spike_clusters.npy',
@@ -127,9 +174,9 @@ class GetWaveforms():
 
     def get_waveforms(self, recording, probe):
         '''
-        This is done 1 recording/probe at a time.
+        Extract mean waveforms of each cluster ID'd by kilosort and save as dictionary.
+        Is run once per recording/probe combo.
         '''
-
         data = self.get_files.get_raw_data(recording, probe).T
         waveforms_dict = {}
         for cluster_idx, cluster_num in enumerate(self.good_clusters):
@@ -176,6 +223,10 @@ class GetWaveforms():
 
 
     def get_probe_sync_data(self, recording, probe):
+        """
+        Gets the probeshift timestamp.
+        Is run once per recording/probe combo.
+        """
         # get barcodes from ephys data
         events_folder = self.events_dirs[recording][probe]
         channel_states = np.load(os.path.join(events_folder,'channel_states.npy'))
@@ -194,7 +245,10 @@ class GetWaveforms():
 
 
     def get_opto_data(self):
-        # optotagging
+        """
+        Generates opto PSTHs.
+        Is run once per recording/probe combo.
+        """
         pre_time = 0.5
         window_dur = 2
         opto_response_dict = {}
@@ -218,6 +272,21 @@ class GetWaveforms():
         self.opto_response_dict = opto_response_dict
 
     def save_data_dicts(self, recording, probe):
+        """
+        Saves dictionary with processed session data with the following top level keys:
+            extraction_params:
+                parameters used during waveform extraction
+            cluster_data
+                mean waveforms
+            session_info:
+                session meta data and parameters
+            good_clusters:
+                a list of clusters identified as 'good' by kilosort
+            opto_data:
+                PSTHs and opto stim waveforms
+
+        Is run once per recording/probe combo.
+        """
         save_dict = {'extraction_params': self.extraction_params,
                     'cluster_data': self.waveforms_dict,
                     'session_info': self.session_info,

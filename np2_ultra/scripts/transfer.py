@@ -8,21 +8,38 @@ import json
 import np2_ultra.files as files
 
 class TransferFiles():
+    """
+    Transfer ephys data from NP2 computers to backup and processing drives.
+
+    Methods
+    ----------
+    xfer_ephys_data()
+    xfer_sync_data()
+    xfer_opto_data()
+    xfer_behavior_videos()
+    xfer_brain_imgs()
+    xfer_params_file()
+    get_date_modified(self, file_path, date_format=False)
+
+    """
+
     def __init__(self, date, mouse_id, destination=('dest_root', 'np2_data'), openephys_folder='false', path_to_files=None):
         '''
-        date: string, 'YYYY-MM-DD' or 'today' to run with today's date
-        mouse_id: string,
-        destination: tuple, first value is key in np2_comp_names json, second value is optional, can be a sub-folder
-                    default = ('dest_root', 'np2_data')
-        openephys_folder: str, specifies a specific folder on the ACQ drive to read from, or 'false' to read the only folder with the specified date
-                    default = 'false'
-        path_to_files = path, can be relative or exact. path to where comp_names json and kilosort template files are located.
-                        if None, will use the relative path of folder 'files' located one directory up from current.
-                    default = None
-
-        Returns
-        ===========
-        Something about what this class does.
+        Parameters
+        ----------
+        date: str
+            The date of the session in YYYY-MM-DD format
+        mouse_id: str
+            The 6 digit mouse number
+        destination: tuple, optional
+            First value is key in np2_comp_names json, second value is optional, can be a sub-folder. default = ('dest_root', 'np2_data')
+        openephys_folder: str, optional
+            Specifies a specific folder on the ACQ drive to read from, or 'false' to read the only folder with the specified date. Not typically used.
+            default = 'false'
+        path_to_files = path, optional
+            Can be relative or exact. path to where comp_names json and kilosort template files are located. Not typically used.
+            If None, will use the relative path of folder 'files' located one directory up from current.
+            default = None
         '''
 
         if path_to_files==None:
@@ -66,6 +83,10 @@ class TransferFiles():
             self.experiment_timestamp = datetime.strptime(timestamp, '%H-%M-%S').time()
 
     def run_it(self):
+        """
+        Runs data transfer to specified location for entire session.
+        if __name__ == __main__ automatically calls this function.
+        """
         print("date: {}, mouse: {}".format(self.date, self.mouse_id))
         print("looking in {}".format(self.computer_names['acq']))
         print("------TRANSFERRING ALL FILES--------")
@@ -79,12 +100,23 @@ class TransferFiles():
         print("------DONE TRANSFERRING FILES {}_{}--------".format(self.date, self.mouse_id))
 
     def get_date_modified(self, file_path, date_format=False):
+        """
+        Get the date a file was last modified. Currently used to ID the correct sync files.
+
+        Parameters
+        ----------
+        date_format: str, optional
+            Can optionally return the date as a string of the specified format, using standard datetime format codes. Default None returns a datetime timestamp object.
+        """
         timestamp = datetime.fromtimestamp(os.stat(file_path).st_mtime)
         if date_format != False:
             timestamp = datetime.strftime(timestamp, date_format)
         return timestamp
 
     def xfer_ephys_data(self):
+        """
+        Tranfer session output from Open Ephys, as well as make a copy of one timestamp.npy file per recording.
+        """
         start = time.time()
         print("Transferring ephys data.")
 
@@ -139,7 +171,9 @@ class TransferFiles():
         print("That took {} seconds".format(end-start))
 
     def xfer_sync_data(self):
-        #transfer sync data
+        """
+        Tranfer session sync files. Files are matched by last modified timestamp to the correct recording folder.
+        """
         start = time.time()
         print("Transferring sync data.")
 
@@ -176,7 +210,9 @@ class TransferFiles():
         print("That took {} seconds".format(end-start))
 
     def xfer_opto_data(self):
-        #transfer opto data
+        """
+        Tranfer session opto pickles.
+        """
         start = time.time()
         print("Transferring opto data.")
 
@@ -210,7 +246,9 @@ class TransferFiles():
         print("That took {} seconds".format(end-start))
 
     def xfer_behavior_videos(self):
-        #transfer behavior videos
+        """
+        Tranfer session behavior videos (eye tracking and body cam).
+        """
         start = time.time()
         print("Transferring videos.")
         mod_date = str(self.date).replace('-', '')
@@ -243,6 +281,9 @@ class TransferFiles():
         print("That took {} seconds".format(end-start))
 
     def xfer_brain_imgs(self):
+        """
+        Tranfer session photos showing brain surface and probe insertion locations.
+        """
         start = time.time()
         print("Transferring brain images.")
         mod_date = str(self.date).replace('-', '_')
@@ -258,6 +299,9 @@ class TransferFiles():
         print("That took {} seconds".format(end-start))
 
     def xfer_params_file(self):
+        """
+        Tranfer session parameters JSON created at experiment time. 
+        """
         start = time.time()
         print("Transferring params file.")
         try:
