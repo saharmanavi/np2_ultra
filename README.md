@@ -1,4 +1,7 @@
-Currently a work in progress
+Current to do list:
+Documentation
+Tools for data cube exploration.
+Tools for basic figure generation.
 
 Neuropixels Ultra ETL & analysis tools
 ==============================
@@ -24,11 +27,24 @@ If you are plan to contribute to the development of the package, I recommend ins
 
 This ensures that Python uses the current, active files in the folder (even while switching between branches).
 
+## Required Libraries
+AllenSDK
+glob2
+Numpy
+pandas
+
+to run kilosort:
+Matlab engine + Matlab and Kilosort installed, in addition to appropriate hardware specs.
+
 ## API
 
-Here's a quick overview of each of the files:
+Current entry points are located in top-level folder:
+  backup_session.py
+  process_session.py 
 
-- to be filled out later
+Each script in scripts can also be run independently.
+
+More documentation to come.
 
 
 ## Contributing
