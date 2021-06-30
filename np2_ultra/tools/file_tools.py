@@ -206,3 +206,19 @@ class GetFiles():
         self.event_dirs = event_data_dirs
         if self.verbose==True:
             print("The session event data directories are available as event_dirs.")
+
+    def make_flags_json(self, recording, probe, text, skip_kilosort):
+        if 'probe_data_dirs' not in dir(self):
+            self.get_probe_dirs("all")
+        try:
+            write_dir = self.probe_data_dirs[recording][probe]
+        except KeyError:
+            print("That probe/recording combo does not exist in this class instance. Rerun with optional probes, recordings args set to 'all'.")
+        flag_text = {'skip_kilosort': skip_kilosort,
+                    'other notes': text}
+        flag_file = os.path.join(write_dir, 'flags.json')
+        with open(flag_file, 'w') as t:
+            json.dump(flag_text, t)
+
+        print('file saved at: {}'.format(flag_file))
+        print(flag_text)
