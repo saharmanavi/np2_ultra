@@ -65,14 +65,17 @@ class GetWaveforms():
             self.get_recording_sync_opto(recording)
 
             for probe in self.probe_data_dirs[recording].keys():
-                print("--------Starting probe {} for {}--------".format(probe, recording))
-                self.get_recording_and_probe(recording, probe)
-                self.get_all_ks_files(recording, probe)
-                self.get_probe_sync_data(recording, probe)
-                self.get_waveforms(recording, probe)
-                self.get_opto_data()
-                self.save_data_dicts(recording, probe)
-
+                skipped_kilosort = self.get_files.get_kilosort_flag(recording, probe)
+                if skipped_kilosort==True:
+                    pass
+                else:
+                    print("--------Starting probe {} for {}--------".format(probe, recording))
+                    self.get_recording_and_probe(recording, probe)
+                    self.get_all_ks_files(recording, probe)
+                    self.get_probe_sync_data(recording, probe)
+                    self.get_waveforms(recording, probe)
+                    self.get_opto_data()
+                    self.save_data_dicts(recording, probe)
 
     def get_directories(self, recordings, probes):
         """

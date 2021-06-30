@@ -222,3 +222,16 @@ class GetFiles():
 
         print('file saved at: {}'.format(flag_file))
         print(flag_text)
+
+    def get_kilosort_flag(self, recording, probe):
+        if 'saline' in self.mouse_id:
+            skip_ks = True
+        else:
+            try:
+                flags_file = os.path.join(self.probe_data_dirs[recording][probe], "flags.json")
+                with open(flags_file, 'r') as f:
+                    flags = json.load(f)
+                    skip_ks = flags['skip_kilosort']
+            except:
+                skip_ks = False
+        return skip_ks

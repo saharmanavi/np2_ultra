@@ -35,19 +35,6 @@ class RunKilosort():
         self.probe_dict = self.get_files.probe_data_dirs
         self.path_to_ks_one_oh, self.path_to_ks_ultra = io.get_paths_to_kilosort_templates()
 
-    def skip_ks_flag(self, probe_dir):
-        if 'saline' in self.mouse_id:
-            skip_ks = True
-        else:
-            try:
-                flags_file = glob2.glob(os.path.join(probe_dir, "flags.json"))[0]
-                with open(flags_file, 'r') as f:
-                    flags = json.load(f)
-                    skip_ks = flags['skip_kilosort']
-            except Exception as e:
-                skip_ks = False
-        return skip_ks
-
     def write_ks_file(self, probe_dir):
         if '.0' in probe_dir:
             session_file = os.path.join(self.main_folder, "kilosort_one_oh_session.m")
@@ -88,7 +75,7 @@ class RunKilosort():
         for recording_key in self.probe_dict:
             for probe_key in self.probe_dict[recording_key]:
                 d = self.probe_dict[recording_key][probe_key]
-                skip_ks = self.skip_ks_flag(probe_dir=d)
+                skip_ks = self.get_files.get_kilosort_flag(recording_key, probe_key)
 
                 if (("rez.mat" in os.listdir(d))==False) and (skip_ks == False):
                     self.write_ks_file(probe_dir=d)
@@ -106,6 +93,10 @@ class RunKilosort():
                     except Exception as e:
                         now = datetime.strftime(datetime.now(), '%Y%m%d-%H%M')
                         bad_dats.append("{} {} {}".format(now, d, e))
+                        self.get_files.make_flags_json(recording_key,
+                                                        probe_key,
+                                                        text = "failed kilosort",
+                                                        skip_kilosort = True,)
                         pass
 
                 elif ("rez.mat" in os.listdir(d))==True:
