@@ -152,13 +152,15 @@ class SessionSummary():
 
         rows = []
         if kilosort==True:
-            rows.append(self.df[(self.df['rez.mat']==0)&(self.df.flags==" ")&(self.df.genotype!='saline')])
+            rows.append(self.df[(self.df['rez.mat']==0)&(self.df.flags==' ')&(self.df.genotype!='saline')])
         if analysis_pkl==True:
-            rows.append(self.df[(self.df['analysis_pkl']==0)&(self.df.flags==" ")&(self.df.genotype!='saline')])
+            rows.append(self.df[(self.df['analysis_pkl']==0)&(self.df.flags==' ')&(self.df.genotype!='saline')])
 
         if (kilosort==True) & (analysis_pkl==True):
             unprocessed = pd.concat(rows)
-            unprocessed.drop(index=unprocessed[unprocessed.duplicated(keep='first')].index, inplace=True)
+            unprocessed.reset_index(inplace=True)
+            unprocessed.drop(index=unprocessed[unprocessed.duplicated(keep='first')==True].index, inplace=True)
+            unprocessed = unprocessed.set_index('index').sort_index()
         else:
             unprocessed = rows[0]
 
