@@ -66,10 +66,18 @@ class RunKilosort():
         eng.addpath(self.main_folder, nargout=0)
 
         if self.recordings != 'all':
-            [self.probe_dict.drop(key, None) for key in self.probe_dict if key not in self.recordings]
+            remove_list = [key for key in self.probe_dict if key not in self.recordings]
+            [self.probe_dict.pop(key, None) for key in self.probe_dict.copy().keys() if key not in self.recordings]
         if self.probes != 'all':
-            for recording_key in self.recordings.keys():
-                [self.probe_dict[recording_key].drop(key, None) for key in self.probe_dict[recording_key] if key not in self.probes]
+            remove_list = []
+            for recording_key in self.probe_dict.copy().keys():
+                remove_probes = [key for key in self.probe_dict[recording_key] if key not in self.probes]
+                remove_list.append((recording_key, [p for p in remove_probes]))
+            for pair in remove_list:
+                recording = pair[0]
+                probes = pair[1]
+                tups = [(recording, p) for p in probes]
+                [self.probe_dict[t[0]].pop(t[1], None) for t in tups]
 
         bad_dats = []
         for recording_key in self.probe_dict:
