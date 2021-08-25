@@ -180,7 +180,7 @@ class TransferFiles():
         session_sync_files = []
         for file in os.listdir(self.computer_names['sync']):
             full_path = os.path.join(self.computer_names['sync'], file)
-            if self.get_date_modified(full_path, '%Y-%m-%d') == self.date:
+            if (self.get_date_modified(full_path, '%Y-%m-%d') == self.date) & ('.h5' in full_path):
                 session_sync_files.append(full_path)
 
         if self.multiple_experiments==True:
@@ -300,7 +300,7 @@ class TransferFiles():
 
     def xfer_params_file(self):
         """
-        Tranfer session parameters JSON created at experiment time. 
+        Tranfer session parameters JSON created at experiment time.
         """
         start = time.time()
         print("Transferring params file.")
@@ -312,3 +312,13 @@ class TransferFiles():
         except:
             print("No params file for {}".format(self.date))
             pass
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    #for all scripts
+    parser.add_argument('date', type=str)
+    parser.add_argument('mouse_id', type=str)
+    args = parser.parse_args()
+
+    TransferFiles(args.date, args.mouse_id).run_it()

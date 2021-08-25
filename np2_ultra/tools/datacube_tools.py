@@ -28,7 +28,7 @@ class SessionSummary():
         times = {}
         for d in os.listdir(directory):
             dirname = os.path.join(directory, d)
-            t = datetime.strptime(time.ctime(os.path.getmtime(dirname)), '%c')
+            t = os.path.getmtime(dirname)
             times[t] = d
         latest = np.max(list(times.keys()))
         latest_path = os.path.join(directory, times[latest])
