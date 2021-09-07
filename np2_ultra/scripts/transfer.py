@@ -316,9 +316,12 @@ class TransferFiles():
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    #for all scripts
+
     parser.add_argument('date', type=str)
     parser.add_argument('mouse_id', type=str)
+    parser.add_argument('--destination', nargs="+", default=('dest_root', 'np2_data'))
+    parser.add_argument('--openephys_folder', nargs="+", default='false')
+    parser.add_argument('--path_to_files', nargs="+", default=None)
     args = parser.parse_args()
 
-    TransferFiles(args.date, args.mouse_id).run_it()
+    TransferFiles(args.date, args.mouse_id, args.destination, args.openephys_folder, args.path_to_files).run_it()

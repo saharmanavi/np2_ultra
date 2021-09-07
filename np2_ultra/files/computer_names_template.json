@@ -1,7 +1,8 @@
-##enter the names of the respect computers (usually starts with W10)
+##enter the names of the respective computers (usually starts with W10)
 ##standard MPE paths are pre-filled in but can be altered as needed.
 ##DO NOT change the key names, as the scripts read this file based on the keys.
 ##all comments will need to be deleted from this template before it will work.
+##save filled out version in np2_ultra\files as computer_names.json
 
 {"stim": "\\\\<computer_name>\\c\\ProgramData\\camstim\\output", #stimulus computer
   "sync": "\\\\<computer_name>\\c\\ProgramData\\AIBS_MPE\\sync\\data",  #sync computer

@@ -14,4 +14,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    transfer.TransferFiles(args.date, args.mouse_id, args.destination).run_it()
+    try:
+        transfer.TransferFiles(args.date, args.mouse_id, args.destination).run_it()
+    except IOError as e:
+        print("Something went wrong. If there isn't enough space on the current backup drive, change the drive name in compuer_names.json")
+        print(e)
+        pass

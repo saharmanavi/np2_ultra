@@ -35,8 +35,11 @@ class RunKilosort():
         self.probe_dict = self.get_files.probe_data_dirs
         self.path_to_ks_one_oh, self.path_to_ks_ultra = io.get_paths_to_kilosort_templates()
 
-    def write_ks_file(self, probe_dir):
-        if '.0' in probe_dir:
+    def write_ks_file(self, probe_dir, one_oh_probes=self.pxi_dict['one_oh_probes']):
+        probe_dir_key = probe_dir[-2:]
+        probe = self.pxi_dict['reverse'][probe_dir_key]
+
+        if probe in one_oh_probes:
             session_file = os.path.join(self.main_folder, "kilosort_one_oh_session.m")
             if os.path.exists(session_file)==False:
                 shutil.copy(self.path_to_ks_one_oh, session_file)
