@@ -10,12 +10,17 @@ import np2_ultra.tools.io as io
 
 class GetFiles():
     """runs in conda env ecephys"""
-    def __init__(self, session_date, mouse_id, probes="all", recordings="all", verbose=False):
+    def __init__(self, session_date, mouse_id, probes="all", recordings="all", pxi_dict='default', verbose=False):
         """recording: list of ints corresponding to the recording numbers, or 'all' to process all recordings in session
             probe: list of probes to process, or 'all' to process all probes in session"""
         self.verbose = verbose
         self.computer_names = io.read_computer_names()
-        self.pxi_dict = io.read_pxi_dict()
+
+
+        if pxi_dict == 'default':
+            self.pxi_dict = io.read_pxi_dict()
+        elif pxi_dict != 'default':
+            self.pxi_dict = io.read_pxi_dict(path_to_json=pxi_dict)
 
         self.session_date = session_date
         self.mouse_id = mouse_id
@@ -222,6 +227,15 @@ class GetFiles():
 
         print('file saved at: {}'.format(flag_file))
         print(flag_text)
+
+    def get_flags_json(self, recording, probe):
+        try:
+            flags_file = os.path.join(self.probe_data_dirs[recording][probe], "flags.json")
+            with open(flags_file, 'r') as f:
+                flags = json.load(f)
+            return flags
+        except FileNotFoundError as e:
+            print("Issue finding the flags json: {}".format(e))
 
     def get_kilosort_flag(self, recording, probe):
         if 'saline' in self.mouse_id:

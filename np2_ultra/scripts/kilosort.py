@@ -10,7 +10,7 @@ from np2_ultra.tools import io, file_tools
 import np2_ultra.files as files
 
 class RunKilosort():
-    def __init__(self, date, mouse_id, probes_to_run='all', recordings_to_run='all'):
+    def __init__(self, date, mouse_id, probes_to_run='all', recordings_to_run='all', pxi_dict='default'):
         '''
         date: string, 'YYYY-MM-DD' or 'today' to run with today's date
         mouse_id: string,
@@ -21,32 +21,39 @@ class RunKilosort():
         self.mouse_id = mouse_id
         self.probes = probes_to_run
         self.recordings = recordings_to_run
-        self.computer_names = io.read_computer_names()
-        self.pxi_dict = io.read_pxi_dict()
 
-        self.get_all_file_locations()
+        self.computer_names = io.read_computer_names()
+        self.get_all_file_locations(pxi_dict=pxi_dict)
         self.run_kilosort()
 
-    def get_all_file_locations(self):
-        self.get_files = file_tools.GetFiles(self.date, self.mouse_id)
+    def get_all_file_locations(self, pxi_dict):
+        self.get_files = file_tools.GetFiles(self.date, self.mouse_id, pxi_dict=pxi_dict)
+        self.pxi_dict = self.get_files.pxi_dict
         self.main_folder = self.get_files.session_dir
         self.bad_dats_txt = os.path.join(self.main_folder, "bad_dat_files.txt")
         self.get_files.get_probe_dirs(probes='all')
         self.probe_dict = self.get_files.probe_data_dirs
         self.path_to_ks_one_oh, self.path_to_ks_ultra = io.get_paths_to_kilosort_templates()
 
-    def write_ks_file(self, probe_dir, one_oh_probes=self.pxi_dict['one_oh_probes']):
+    def write_ks_file(self, probe_dir, one_oh_probes=None):
+        if one_oh_probes == None:
+            one_oh_probes=self.pxi_dict['one_oh_probes']
+
+        print("1.0 probes are {}".format(one_oh_probes))
         probe_dir_key = probe_dir[-2:]
         probe = self.pxi_dict['reverse'][probe_dir_key]
+        print("probe id is {}".format(probe))
 
         if probe in one_oh_probes:
             session_file = os.path.join(self.main_folder, "kilosort_one_oh_session.m")
             if os.path.exists(session_file)==False:
                 shutil.copy(self.path_to_ks_one_oh, session_file)
+            one_oh = True
         else:
             session_file = os.path.join(self.main_folder, "kilosort_ultra_session.m")
             if os.path.exists(session_file)==False:
                 shutil.copy(self.path_to_ks_ultra, session_file)
+            one_oh = False
 
         with open(session_file, "r") as f:
             lines = f.readlines()
@@ -62,6 +69,8 @@ class RunKilosort():
 
         with open(session_file, "w") as dest:
             dest.writelines(lines)
+
+        return one_oh
 
     def run_kilosort(self):
 
@@ -89,15 +98,15 @@ class RunKilosort():
                 skip_ks = self.get_files.get_kilosort_flag(recording_key, probe_key)
 
                 if (("rez.mat" in os.listdir(d))==False) and (skip_ks == False):
-                    self.write_ks_file(probe_dir=d)
+                    one_oh = self.write_ks_file(probe_dir=d)
 
                     try:
                         start = time.time()
                         print('starting kilosort on {} {}'.format(d.split("\\")[6], d.split('\\')[-1]))
                         eng.cd(self.main_folder)
-                        if ".0" in d:
+                        if one_oh == True:
                             eng.kilosort_one_oh_session(nargout=0)
-                        else:
+                        elif one_oh == False:
                             eng.kilosort_ultra_session(nargout=0)
                         end = time.time()
                         print("done with kilosort. that took {}s".format(end-start))
@@ -105,15 +114,16 @@ class RunKilosort():
                         now = datetime.strftime(datetime.now(), '%Y%m%d-%H%M')
                         bad_dats.append("{} {} {}".format(now, d, e))
                         self.get_files.make_flags_json(recording_key,
-                                                        probe_key,
-                                                        text = "failed kilosort",
-                                                        skip_kilosort = True,)
+                                                    probe_key,
+                                                    text = "failed kilosort",
+                                                    skip_kilosort = True,)
                         pass
 
                 elif ("rez.mat" in os.listdir(d))==True:
                     print("{} {} has already been processed. Delete rez.mat to reprocess.".format(d.split("\\")[6], d.split('\\')[-1]))
                 elif skip_ks == True:
-                    print("Skipping {} {} because of flags file: {}".format(d.split("\\")[6], d.split('\\')[-1], flags['other_notes']))
+                    flags = self.get_files.get_flags_json(recording_key, probe_key)
+                    print("Skipping {} {} because of flags file: {}".format(d.split("\\")[6], d.split('\\')[-1], flags['other notes']))
 
             with open(self.bad_dats_txt, 'a') as f:
                 for line in bad_dats:
@@ -127,6 +137,7 @@ if __name__ == "__main__":
     parser.add_argument('mouse_id', type=str)
     parser.add_argument('--probes_to_run', nargs="+", default='all')
     parser.add_argument('--recordings_to_run', nargs="+", default='all')
+    parser.add_argument('--pxi_dict', default='default')
     args = parser.parse_args()
 
-    RunKilosort(args.date, args.mouse_id, args.probes_to_run, args.recordings_to_run)
+    RunKilosort(args.date, args.mouse_id, args.probes_to_run, args.recordings_to_run, args.pxi_dict)
