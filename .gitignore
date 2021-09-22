@@ -6,5 +6,6 @@ __pycache__/*
 *.egg-info/*
 
 #development scripts not ready/needed to be pushed
-/tools/logging_tools.py
+*/tools/logging_tools.py
+*/tools/transfer_rework.py
 */test_script.py
