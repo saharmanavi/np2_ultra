@@ -4,38 +4,10 @@ import numpy as np
 import shutil
 
 
-def create_flags_txt(probe_data_dir, flag_text):
-    """probe_data_dir is the path to the folder where the continuous.dat file is for the probe/recording
-    flag_text is a dictionary with common keys 'skip_kilosort' and 'other_notes'"""
-
-    flag_file = os.path.join(folder_loc, "flags.json")
-    with open(flag_file, 'w') as t:
-        json.dump(flag_text, t)
-
-def check_flags_file(key, probe_data_dir, default_cond=False):
-    condition = default_cond
-    flags_file = os.path.join(probe_data_dir,'flags.json')
-    if os.path.exists(flags_file):
-        with open(flags_file, 'r') as f:
-            flags = json.load(f)
-            condition = flags[key]
-    return condition
-
-def fix_spike_times(spike_times_file_path, timestamps_file, probe_data_dir):
-    spike_times = np.load(spike_times_file_path)
-    if 'spike_times_old.npy' not in os.listdir(probe_data_dir):
-        shutil.copy(spike_times_file_path, os.path.join(os.path.dirname(spike_times_file_path), 'spike_times_old.npy'))
-        t0 = np.load(timestamps_file)[0]
-        spike_times = spike_times + t0
-        np.save(spike_times_file_path, spike_times)
-    spike_times_old = np.load(os.path.join(probe_data_dir, 'spike_times_old.npy'))
-    return spike_times, spike_times_old
-
-
 def signaltonoise(a, axis=0, ddof=0):
     '''
     Created on Sat Sep 12 15:52:39 2020
-    @author: svc_ccg
+    author: svc_ccg
     '''
     a = np.asanyarray(a)
     m = a.mean(axis)
@@ -55,6 +27,8 @@ def bootstrap_resample(X, n=None):
     Results
     -------
     returns X_resamples
+
+    author: svc_ccg
     """
     if n == None:
         n = len(X)
@@ -66,7 +40,7 @@ def bootstrap_resample(X, n=None):
 def getPSTH(spikes,startTimes,windowDur,binSize=0.01,avg=True):
     '''
     Created on Sat Sep 12 15:52:39 2020
-    @author: svc_ccg
+    author: svc_ccg
     '''
     bins = np.arange(0,windowDur+binSize,binSize)
     counts = np.zeros((len(startTimes),bins.size-1))
@@ -107,3 +81,41 @@ def get_sync_line_data(syncDataset, line_label=None, channel=None):
     falling = syncDataset.get_falling_edges(channel)/sample_freq
 
     return rising, falling
+
+def get_probe_spatial_layout(probe_type):
+    """gets values for:
+        probeX/probeY: range of X and Y values of probe as numpy arrays
+        probeRows/probeCols: values of number of probe rows and columns as ints
+
+        probe_type: str ('ultra', '1.0')
+        """
+    if probe_type=='1.0':
+        probeRows = 96
+        probeCols = 4
+
+        x_spacing = 16
+        x_start = 11
+        probeX = np.arange(x_start,x_spacing*probeCols, x_spacing)
+
+        y_spacing = 20
+        n_row = probeRows*2
+        y_start = 20
+        probeY = np.arange(y_start, y_spacing*n_row+1, y_spacing)
+
+    elif probe_type=='ultra':
+        probeRows = 48
+        probeCols = 8
+        channelSpacing = 6 # microns
+        probeX = np.arange(probeCols)*channelSpacing
+        probeY = np.arange(probeRows)*channelSpacing
+
+    else:
+        print("Probe type was not understood. Please specify 1.0 or ultra.")
+
+    return probeRows, probeCols, probeX, probeY
+
+def get_channel_positions(data_dir):
+    """channel_pos: numpy array of channel positions"""
+    channel_pos_file =  os.path.join(data_dir, "channel_positions.npy")
+    channel_pos = np.load(channel_pos_file)
+    return channel_pos

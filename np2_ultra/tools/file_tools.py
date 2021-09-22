@@ -9,7 +9,6 @@ import np2_ultra.tools.io as io
 
 
 class GetFiles():
-    """runs in conda env ecephys"""
     def __init__(self, session_date, mouse_id, probes="all", recordings="all", pxi_dict='default', verbose=False):
         """recording: list of ints corresponding to the recording numbers, or 'all' to process all recordings in session
             probe: list of probes to process, or 'all' to process all probes in session"""
@@ -75,12 +74,9 @@ class GetFiles():
         for drop in to_drop:
             probe_data_dirs[drop[0]].pop(drop[1])
 
-
-
         self.probe_data_dirs = probe_data_dirs
         if self.verbose==True:
             print("The session probe data directories are available as probe_data_dirs.")
-
 
     def get_session_parameters(self):
         """SESSION-WIDE
@@ -110,7 +106,6 @@ class GetFiles():
             self.gain_factor = 0.19499999284744262695
         if self.verbose==True:
             print("Gain factor returned as gain_factor.")
-
 
     def get_data_dict(self, recording, probe):
         """
@@ -144,38 +139,6 @@ class GetFiles():
         rawData = np.memmap(raw_data_file,dtype='int16',mode='r')
         raw_data = np.reshape(rawData, (int(rawData.size/384), 384)).T
         return raw_data
-
-    def get_channel_positions(self, data_dir):
-        """channel_pos: numpy array of channel positions"""
-        channel_pos_file =  os.path.join(data_dir, "channel_positions.npy")
-        channel_pos = np.load(channel_pos_file)
-        return channel_pos
-
-    def get_probe_info(self, probe):
-        """gets values for:
-            probeX/probeY: range of X and Y values of probe as numpy arrays
-            probeRows/probeCols: values of number of probe rows and columns as ints"""
-        if probe=='A':
-            probeRows = 96
-            probeCols = 4
-
-            x_spacing = 16
-            x_start = 11
-            probeX = np.arange(x_start,x_spacing*probeCols, x_spacing)
-
-            y_spacing = 20
-            n_row = probeRows*2
-            y_start = 20
-            probeY = np.arange(y_start, y_spacing*n_row+1, y_spacing)
-
-        else:
-            probeRows = 48
-            probeCols = 8
-            channelSpacing = 6 # microns
-            probeX = np.arange(probeCols)*channelSpacing
-            probeY = np.arange(probeRows)*channelSpacing
-
-        return probeRows, probeCols, probeX, probeY
 
     def get_events_dir(self, probes, lfp=False):
         '''
