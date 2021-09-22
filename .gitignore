@@ -7,5 +7,5 @@ __pycache__/*
 
 #development scripts not ready/needed to be pushed
 */tools/logging_tools.py
-*/tools/transfer_rework.py
+*/scripts/transfer_rework.py
 */test_script.py
