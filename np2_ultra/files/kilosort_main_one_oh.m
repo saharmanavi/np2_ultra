@@ -10,7 +10,7 @@
 addpath(genpath('C:\Users\saharm\Documents\CODE\code_package_downloads\Kilosort2')) % path to kilosort folder
 addpath('C:\Users\saharm\Documents\CODE\code_package_downloads\npy-matlab') % for converting to Phy
 rootH = 'E:\kilosort\temp_data'; % path to temporary binary file (same size as data, should be on fast SSD)
-pathToYourConfigFile = '\\10.128.54.155\Data\kilosort_files'; % take from Github folder and put it somewhere else (together with the main_file)
+pathToYourConfigFile = '\\10.128.50.54\Data\kilosort_files'; % take from Github folder and put it somewhere else (together with the main_file)
 chanMapFile = 'kilosort_chanMap_one_oh.mat';
 
 
