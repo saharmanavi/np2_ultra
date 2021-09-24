@@ -4,6 +4,16 @@ import numpy as np
 import shutil
 
 
+def fix_spike_times(spike_times_file_path, timestamps_file, probe_data_dir):
+    spike_times = np.load(spike_times_file_path)
+    if 'spike_times_old.npy' not in os.listdir(probe_data_dir):
+        shutil.copy(spike_times_file_path, os.path.join(os.path.dirname(spike_times_file_path), 'spike_times_old.npy'))
+        t0 = np.load(timestamps_file)[0]
+        spike_times = spike_times + t0
+        np.save(spike_times_file_path, spike_times)
+    spike_times_old = np.load(os.path.join(probe_data_dir, 'spike_times_old.npy'))
+    return spike_times, spike_times_old
+
 def signaltonoise(a, axis=0, ddof=0):
     '''
     Created on Sat Sep 12 15:52:39 2020

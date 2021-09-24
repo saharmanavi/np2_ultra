@@ -9,17 +9,33 @@ import np2_ultra.tools.io as io
 
 
 class GetFiles():
-    def __init__(self, session_date, mouse_id, probes="all", recordings="all", pxi_dict='default', verbose=False):
-        """recording: list of ints corresponding to the recording numbers, or 'all' to process all recordings in session
-            probe: list of probes to process, or 'all' to process all probes in session"""
+    def __init__(self, session_date, mouse_id, probes="all", recordings="all",
+                        pxi_dict='default', opto_params='default', verbose=False):
+        '''
+        date: str
+            The date of the session in YYYY-MM-DD format
+        mouse_id: str
+            The 6 digit mouse number
+        probes: list, optional, default = 'all'
+            Optionally only process a subset of probes in the session.
+            Probes are ID'd by their letter and passed as a list of strings, eg ['A', 'E']
+        recordings: list, optional, default = 'all'
+            Optionally only process a subset of recordings in the session.
+            Recordings are ID'd by the name of the recording folder and passed as a list of strings, eg ['recording2']
+        pxi_dict: path, optional, default = 'default'
+            Pass a path to a JSON containing a customized dictionary of mappings of probe letter to OpenEphys folder suffix.
+            Default option runs the file located at ../files/pxi_dict.json
+        opto_params: path, optional, default = 'default'
+            Pass a path to a JSON containing a dictionary of opto PSTH parameters.
+            Default option runs the file located at ../files/opto_params.json
+        verbose: bool, optional, default=False
+            If set to true, print statements will tell you names of variables set by the class.
+        '''
         self.verbose = verbose
         self.computer_names = io.read_computer_names()
 
-
-        if pxi_dict == 'default':
-            self.pxi_dict = io.read_pxi_dict()
-        elif pxi_dict != 'default':
-            self.pxi_dict = io.read_pxi_dict(path_to_json=pxi_dict)
+        self.pxi_dict = io.read_pxi_dict(path_to_json=pxi_dict)
+        self.opto_params = io.read_opto_params(path_to_json=opto_params)
 
         self.session_date = session_date
         self.mouse_id = mouse_id
@@ -50,6 +66,9 @@ class GetFiles():
             print("The session recording directories are available as recording_dirs.")
 
     def get_probe_dirs(self, probes):
+        '''
+        Generate a dictionary of the probe directories to be processed for the session.
+        '''
         if 'recording_dirs' not in dir(self):
             self.determine_recordings("all")
         probe_data_dirs = {}
@@ -113,10 +132,10 @@ class GetFiles():
         probe: str in format of a capital letter indicating the probe cartridge position
         data_dict: the waveform and opto data as a dictionary
         """
-        pkl_dir = os.path.join(self.analysis_dir, self.s_id, "probe{}".format(probe))
+        pkl_dir = os.path.join(self.analysis_dir, "probe{}".format(probe))
         try:
-            pkl_file = [f for f in pkl_dir if recording[0] in f][0]
-            self.data_dict = pd.read_pickle(pkl_file)
+            pkl_file = [f for f in os.listdir(pkl_dir) if recording in f][0]
+            self.data_dict = pd.read_pickle(os.path.join(pkl_dir, pkl_file))
             if self.verbose==True:
                 print("Data dictionary returned as data_dict.")
         except IndexError:
@@ -176,6 +195,20 @@ class GetFiles():
             print("The session event data directories are available as event_dirs.")
 
     def make_flags_json(self, recording, probe, text, skip_kilosort):
+        """
+        Create a flags JSON for the probe/recording combo.
+
+        Parameters
+        ----------
+        recording: str
+            Recording to check.
+        probe: str
+            Probe to check.
+        text: str
+            Descriptive text that will appear in the flags column of the session summary dataframe.
+        skip_kilosort: bool
+            whether Kilosort should be skipped for this recording/probe combo.
+        """
         if 'probe_data_dirs' not in dir(self):
             self.get_probe_dirs("all")
         try:
@@ -192,6 +225,21 @@ class GetFiles():
         print(flag_text)
 
     def get_flags_json(self, recording, probe):
+        """
+        Find the flags JSON for the recording/probe combo.
+
+        Parameters
+        ----------
+        recording: str
+            Recording to check.
+        probe: str
+            Probe to check.
+
+        Returns
+        ----------
+        flags: dictionary
+            The dictionary contained in the flags JSON file.
+        """
         try:
             flags_file = os.path.join(self.probe_data_dirs[recording][probe], "flags.json")
             with open(flags_file, 'r') as f:
@@ -201,6 +249,21 @@ class GetFiles():
             print("Issue finding the flags json: {}".format(e))
 
     def get_kilosort_flag(self, recording, probe):
+        """
+        Read the kilosort flag (if any) for the recording/probe combo and determine whether to skip Kilosort.
+
+        Parameters
+        ----------
+        recording: str
+            Recording to check.
+        probe: str
+            Probe to check.
+
+        Returns
+        ----------
+        skip_ks: bool
+            Whether or not to skip Kilosort.
+        """
         if 'saline' in self.mouse_id:
             skip_ks = True
         else:

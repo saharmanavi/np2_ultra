@@ -19,7 +19,7 @@ class TransferFiles():
     xfer_behavior_videos()
     xfer_brain_imgs()
     xfer_params_file()
-    get_date_modified(self, file_path, date_format=False)
+    get_date_modified(file_path, date_format=False)
 
     """
 
@@ -31,17 +31,16 @@ class TransferFiles():
             The date of the session in YYYY-MM-DD format
         mouse_id: str
             The 6 digit mouse number
-        destination: tuple, optional
-            First value is key in np2_comp_names json, second value is optional, can be a sub-folder. default = ('dest_root', 'np2_data')
-        openephys_folder: str, optional
-            Specifies a specific folder on the ACQ drive to read from, or 'false' to read the only folder with the specified date. Not typically used.
+        destination: tuple, optional, default = ('dest_root', 'np2_data')
+            First value is key in np2_comp_names json, second value is optional, can be a sub-folder.
+        openephys_folder: str, optional, default = 'false'
+            Argument takes the exact name (not path) of the OpenEphys folder you wish to process.
+            This is only needed when more than one session is run on the same day.
             default = 'false'
-        path_to_files = path, optional
-            Can be relative or exact. path to where comp_names json and kilosort template files are located. Not typically used.
+        path_to_files: path, optional, default = None
+            Can be relative or exact path to where comp_names json and kilosort template files are located. Not typically used.
             If None, will use the relative path of folder 'files' located one directory up from current.
-            default = None
         '''
-
         if path_to_files==None:
             self.path_to_files = os.path.dirname(files.__file__)
         else:
@@ -77,7 +76,7 @@ class TransferFiles():
         if len(potential_folders) > 1:
             self.multiple_experiments=True
             if self.specify_folder==False:
-                print("There are multiple folders with the same date. You must specify which folder to use.")
+                print("There are multiple folders with the same date. You must specify which folder to use using the openephys_folder argument.")
                 return
             timestamp = self.specify_folder.split('_')[1]
             self.experiment_timestamp = datetime.strptime(timestamp, '%H-%M-%S').time()
@@ -105,8 +104,9 @@ class TransferFiles():
 
         Parameters
         ----------
-        date_format: str, optional
-            Can optionally return the date as a string of the specified format, using standard datetime format codes. Default None returns a datetime timestamp object.
+        date_format: str, optional, default = False
+            Can optionally return the date as a string of the specified format, using standard datetime format codes.
+            Default returns a datetime timestamp object.
         """
         timestamp = datetime.fromtimestamp(os.stat(file_path).st_mtime)
         if date_format != False:
@@ -116,6 +116,7 @@ class TransferFiles():
     def xfer_ephys_data(self):
         """
         Tranfer session output from Open Ephys, as well as make a copy of one timestamp.npy file per recording.
+        Copying the timestamp.npy file is vital for downstream processing.
         """
         start = time.time()
         print("Transferring ephys data.")
@@ -162,6 +163,10 @@ class TransferFiles():
                 except FileExistsError:
                     pass
                 try:
+                    #this step is very important because it fixes an issue where kilosort and openephys miscommunicate about timestamps
+                    #it's necessary to save 1 timestamps.npy file per recording (from any probe is fine) outside of the folder where it usually is
+                    #and this needs to happen before Kilosort is run because KS deletes that file.
+                    #this timestamps.npy file is necessary to align the opto data properly. 
                     probeA_timestamps = glob2.glob(os.path.join(new, 'continuous', 'Neuropix-PXI-*.0', 'timestamps.npy'))[0]
                     shutil.copy(probeA_timestamps, new)
                 except:
@@ -320,8 +325,8 @@ if __name__ == "__main__":
     parser.add_argument('date', type=str)
     parser.add_argument('mouse_id', type=str)
     parser.add_argument('--destination', nargs="+", default=('dest_root', 'np2_data'))
-    parser.add_argument('--openephys_folder', nargs="+", default='false')
-    parser.add_argument('--path_to_files', nargs="+", default=None, type=str)
+    parser.add_argument('--openephys_folder',default='false')
+    parser.add_argument('--path_to_files', default=None, type=str)
     args = parser.parse_args()
 
     TransferFiles(args.date, args.mouse_id, args.destination, args.openephys_folder, args.path_to_files).run_it()

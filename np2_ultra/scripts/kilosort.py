@@ -108,7 +108,7 @@ class RunKilosort():
                 del lines[z]
             zline = [n for n,l in enumerate(lines) if "rootZ =" in l]
 
-        text_insert = "rootZ = '{}';".format(probe_dir)
+        text_insert = "rootZ = '{}';\n".format(probe_dir)
         lines.insert(0, text_insert)
 
         with open(session_file, "w") as dest:
