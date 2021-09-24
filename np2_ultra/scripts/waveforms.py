@@ -16,11 +16,11 @@ from allensdk.brain_observatory.sync_dataset import Dataset
 
 class GetWaveforms():
     """
-    Process kilosort spike sorting output into dictionary of averaged waveform and opto stimulation data.
+    Process sorted spikes into dictionary of averaged waveform and opto stimulation data.
 
     Methods
     ----------
-    get_directories(recordings = recordings_to_run, probes = probes_to_run)
+    get_all_file_locations(recordings = recordings_to_run, probes = probes_to_run, pxi_dict = pxi_dict)
     waveform_extraction_params(use_json_params=use_json_params)
     run_it()
     get_recording_sync_opto(recording)
@@ -30,9 +30,8 @@ class GetWaveforms():
     get_waveforms(recording, probe)
     get_opto_data()
     save_data_dicts(recording, probe)
-
     """
-    def __init__(self, date, mouse_id, probes_to_run='all', recordings_to_run='all', use_json_params=None):
+    def __init__(self, date, mouse_id, probes_to_run='all', recordings_to_run='all', use_json_params=None, pxi_dict='default', opto_params='default'):
         """
         Parameters
         ----------
@@ -40,20 +39,26 @@ class GetWaveforms():
             The date of the session in YYYY-MM-DD format
         mouse_id: str
             The 6 digit mouse number
-        probes_to_run: list of strings, optional
-            For if you want to run a subset of the probes in the session. Pass a list of probe letters, eg ['C', 'E']. default runs all
-        recording_to_run: list of strings, optional
-            For if you want to run a subset of the recordings in the session. Pass a list of recording IDs, eg ['recording2', 'recording3']. default runs all
-        use_json_params: path
-            To specify custom waveform parameters. Pass the location of a JSON file containing a dictionary with the parameters. default is None
+        probes_to_run: list, optional, default = 'all'
+            Optionally only process a subset of probes in the session.
+            Probes are ID'd by their letter and passed as a list of strings, eg ['A', 'E']
+        recordings_to_run: list, optional, default = 'all'
+            Optionally only process a subset of recordings in the session.
+            Recordings are ID'd by the name of the recording folder and passed as a list of strings, eg ['recording2']
+        use_json_params: path, optional, default = None
+            To specify custom waveform parameters. Pass the location of a JSON file containing a dictionary with the parameters.
+        pxi_dict: path, optional, default = 'default'
+            Pass a path to a JSON containing a customized dictionary of mappings of probe letter to OpenEphys folder suffix.
+            Default option runs the file located at ../files/pxi_dict.json
+        opto_params: path, optional, default = 'default'
+            Pass a path to a JSON containing a dictionary of opto PSTH parameters.
+            Default option runs the file located at ../files/opto_params.json
         """
         self.date = date
         self.mouse_id = mouse_id
         self.computer_names = io.read_computer_names()
-        self.pxi_dict = io.read_pxi_dict()
 
-
-        self.get_directories(recordings = recordings_to_run, probes = probes_to_run)
+        self.get_all_file_locations(recordings = recordings_to_run, probes = probes_to_run, pxi_dict = pxi_dict, opto_params = opto_params)
         self.waveform_extraction_params(use_json_params=use_json_params)
 
     def run_it(self):
@@ -69,7 +74,7 @@ class GetWaveforms():
                 if skipped_kilosort==True:
                     pass
                 else:
-                    print("--------Starting probe {} for {}--------".format(probe, recording))
+                    print("--------Extracting waveforms: {} probe {} for {}--------".format(recording, probe, self.session_name))
                     self.get_recording_and_probe(recording, probe)
                     self.get_all_ks_files(recording, probe)
                     self.get_probe_sync_data(recording, probe)
@@ -77,11 +82,21 @@ class GetWaveforms():
                     self.get_opto_data()
                     self.save_data_dicts(recording, probe)
 
-    def get_directories(self, recordings, probes):
+    def get_all_file_locations(self, recordings, probes, pxi_dict, opto_params):
         """
-        Collects all the relevant file locations and directories for the entire session. Is initialized in __init__.
+        Get paths to all relevant files and folders.
+        Is initialized in __init__.
+
+        Parameters
+        ----------
+        recordings: list
+            All recordings that were specified when class was initialized.
+        probes: list
+            All probes that were specified when class was initialized.
+        pxi_dict: path, optional, default = 'default'
+            see documentation of this arg under __init__
         """
-        self.get_files = file_tools.GetFiles(self.date, self.mouse_id)
+        self.get_files = file_tools.GetFiles(self.date, self.mouse_id, pxi_dict=pxi_dict, opto_params=opto_params)
         self.get_files.determine_recordings(recordings=recordings)
         self.recording_dirs = self.get_files.recording_dirs
         self.get_files.get_probe_dirs(probes=probes)
@@ -92,10 +107,17 @@ class GetWaveforms():
         if os.path.exists(self.analysis_dir)==False:
             os.makedirs(self.analysis_dir)
         self.session_name = self.get_files.s_id
+        self.opto_params = self.get_files.opto_params
 
     def waveform_extraction_params(self, use_json_params=None):
         """
-        Sets the waveform extraction parameters for the session. Is initialized in __init__.
+        Sets the waveform extraction parameters for the session.
+        Is initialized in __init__.
+
+        Parameters
+        ----------
+        use_json_params: path, optional, default = None
+            see documentation of this arg under __init__
         """
         if use_json_params is not None:
             with open(use_json_params, 'r') as params:
@@ -114,6 +136,11 @@ class GetWaveforms():
         """
         Gets and unpacks sync and opto timestamp data for the recording being currently processed.
         Is run once per recording.
+
+        Parameters
+        ----------
+        recording: str
+            The name of the recording being run, eg 'recording2'
         """
         recording_folder = self.recording_dirs[recording]
 
@@ -139,6 +166,13 @@ class GetWaveforms():
         """
         Define recording and probe names for this loop of extraction.
         Is run once per recording/probe combo.
+
+        Parameters
+        ----------
+        recording: str
+            The name of the recording being run, eg 'recording2'
+        probe: str
+            The name of the probe being run, eg 'C'
         """
         self.session_info = {'session_name': self.session_name,
                            'probe_label': probe,
@@ -149,6 +183,13 @@ class GetWaveforms():
         '''
         Get and read all relevant kilosort files.
         Is run once per recording/probe combo.
+
+        Parameters
+        ----------
+        recording: str
+            The name of the recording being run, eg 'recording2'
+        probe: str
+            The name of the probe being run, eg 'C'
         '''
         data_dir = self.probe_data_dirs[recording][probe]
         ks_file_dict = {'spike_clusters': 'spike_clusters.npy',
@@ -177,8 +218,15 @@ class GetWaveforms():
 
     def get_waveforms(self, recording, probe):
         '''
-        Extract mean waveforms of each cluster ID'd by kilosort and save as dictionary.
+        Creates a dictionary of wavefroms extracted according to waveform_extraction_params().
         Is run once per recording/probe combo.
+
+        Parameters
+        ----------
+        recording: str
+            The name of the recording being run, eg 'recording2'
+        probe: str
+            The name of the probe being run, eg 'C'
         '''
         data = self.get_files.get_raw_data(recording, probe).T
         waveforms_dict = {}
@@ -227,8 +275,15 @@ class GetWaveforms():
 
     def get_probe_sync_data(self, recording, probe):
         """
-        Gets the probeshift timestamp.
+        Gets the probeshift timestamp from probe and sync barcodes.
         Is run once per recording/probe combo.
+
+        Parameters
+        ----------
+        recording: str
+            The name of the recording being run, eg 'recording2'
+        probe: str
+            The name of the probe being run, eg 'C'
         """
         # get barcodes from ephys data
         events_folder = self.events_dirs[recording][probe]
@@ -252,26 +307,29 @@ class GetWaveforms():
         Generates opto PSTHs.
         Is run once per recording/probe combo.
         """
-        pre_time = 0.5
-        window_dur = 2
         opto_response_dict = {}
         for cond in np.unique(self.opto_data['opto_conditions']):
             cond_dict = {}
+
+            condition = self.opto_params['conditions'][str(cond)]
+            params = {}
+            for key in self.opto_params['parameters'][condition].keys():
+                params[key] = float(self.opto_params['parameters'][condition][key])
+
             for level in np.unique(self.opto_data['opto_levels']):
                 level_dict = {}
                 for cluster in self.good_clusters:
                     opto_trials = (self.opto_data['opto_conditions']==cond) & (self.opto_data['opto_levels']==level)
                     psth,tp = ant.getPSTH(self.waveforms_dict[str(cluster)]['spike_times'],
-                                        self.opto_on_times[opto_trials]-pre_time,
-                                        window_dur,
-                                        binSize=0.01)
+                                        self.opto_on_times[opto_trials]- params['pretime'],
+                                        params['window_dur'],
+                                        binSize=params['binsize'])
                     level_dict[cluster] = {'psth': psth, 'times':tp}
                 cond_dict[level] = level_dict
             cond_key = "stim_{}".format(cond)
             opto_response_dict[cond_key] = cond_dict
             opto_response_dict[cond_key]['stim_waveform'] = self.opto_data['opto_waveforms'][cond]
-        opto_response_dict['window_dur'] = window_dur
-        opto_response_dict['pre_time'] = pre_time
+            opto_response_dict[cond_key]['params'] = params
         self.opto_response_dict = opto_response_dict
 
     def save_data_dicts(self, recording, probe):
@@ -311,8 +369,9 @@ if __name__ == "__main__":
     parser.add_argument('mouse_id', type=str)
     parser.add_argument('--probes_to_run', nargs="+", default='all')
     parser.add_argument('--recordings_to_run', nargs="+", default='all')
-    parser.add_argument('--use_json_params', nargs="+", type=str, default=None)
+    parser.add_argument('--pxi_dict', default='default')
+    parser.add_argument('--use_json_params', default=None)
     args = parser.parse_args()
 
-    runner = GetWaveforms(args.date, args.mouse_id, args.probes_to_run, args.recordings_to_run, args.use_json_params)
+    runner = GetWaveforms(args.date, args.mouse_id, args.probes_to_run, args.recordings_to_run, args.use_json_params, args.pxi_dict)
     runner.run_it()

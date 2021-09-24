@@ -1,0 +1,18 @@
+{"conditions":
+  {
+  "2": "data_10ms",
+  "3": "data_cosine"},
+
+"parameters":
+  {
+  "data_cosine":{
+    "pretime": ".5",
+    "window_dur": "2",
+    "binsize": ".01"},
+
+  "data_10ms":{
+    "pretime": ".01",
+    "window_dur": ".03",
+    "binsize": ".0005"  }
+  }
+}
